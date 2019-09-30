@@ -1,12 +1,17 @@
 import React from 'react';
 import './App.css';
 import 'react-bulma-components/dist/react-bulma-components.min.css';
-import { Navbar,Section,Container } from 'react-bulma-components'
-import { LoginForm } from './components/login';
+import { Navbar,Container } from 'react-bulma-components'
+import { LoginForm } from './pages/login';
+import { StoreProvider } from './state/store';
+
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { Wallet } from './pages/wallet';
+
 
 const App: React.FC = () => {
   return (
-    <div className="App">
+    <StoreProvider >
         <Container>   
          <Navbar transparent={false}>
         <Navbar.Brand>
@@ -14,12 +19,21 @@ const App: React.FC = () => {
         </Navbar.Brand>
       </Navbar>
       </Container>
-      <Section>
-        <Container>
+
+      <Router>
+        <Switch>
+          <Route path="/login">
             <LoginForm/>
-        </Container>
-      </Section>
-    </div>
+          </Route>
+          <Route path="/wallet">
+            <Wallet/>
+          </Route>
+          <Route>
+            <LoginForm/>
+          </Route>
+        </Switch>
+      </Router>
+    </StoreProvider>
   );
 }
 

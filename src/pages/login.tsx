@@ -1,7 +1,10 @@
-import React, { useReducer, useState } from 'react';
+import React, { useReducer, useState, useContext } from 'react';
 import { Columns, Heading, Form, Icon, Loader, Button } from 'react-bulma-components';
 import { getAppCommunity } from '../util/appcommunity';
 import { EcdsaKey, ChainTree, Tupelo, setOwnershipTransaction, setDataTransaction } from 'tupelo-wasm-sdk';
+import { RouteProps, Redirect } from 'react-router';
+import {StoreContext, AppActions, IAppLogin} from '../state/store'
+
 
 export const usernameKey = "/_wallet/username"
 const namespace = Buffer.from("_wallet-dev")
@@ -171,7 +174,7 @@ function PasswordField({ name, value, onChange, error }: { name: string, value: 
 }
 
 // the elements at the bottom of a login form
-function LoginBottom({ state, dispatch }: { state: ILoginState, dispatch: Function }) {
+function LoginBottom({ state, dispatch, onLogin }: { state: ILoginState, dispatch: Function, onLogin:Function }) {
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
 
@@ -179,19 +182,17 @@ function LoginBottom({ state, dispatch }: { state: ILoginState, dispatch: Functi
         if (state.userTree === undefined) {
             throw new Error("must have a user tree to login")
         }
+
+        const tree = state.userTree
         const username = state.username
 
         let secureKey = await EcdsaKey.passPhraseKey(Buffer.from(password), Buffer.from(username))
         let secureAddr = await Tupelo.ecdsaPubkeyToAddress(secureKey.publicKey)
-        let resolveResp = await state.userTree.resolve("tree/_tupelo/authentications")
+        let resolveResp = await tree.resolve("tree/_tupelo/authentications")
         let auths: string[] = resolveResp.value
         if (auths.includes(secureAddr)) {
-            // TODO: what to do on actual login
-            dispatch({
-                type: Actions.userTree,
-                username: username,
-                tree: state.userTree,
-            } as IUserTree)
+            tree.key = secureKey
+            onLogin(state.userTree)
         } else {
             setError("invalid password")
         }
@@ -206,7 +207,7 @@ function LoginBottom({ state, dispatch }: { state: ILoginState, dispatch: Functi
 }
 
 // the elements at the bottom of a login form
-function RegisterBottom({ state, dispatch }: { state: ILoginState, dispatch: Function }) {
+function RegisterBottom({ state, dispatch, onLogin }: { state: ILoginState, dispatch: Function, onLogin:Function }) {
     const [password, setPassword] = useState('')
     const [passwordConfirm, setPasswordConfirm] = useState('')
     const [error, setError] = useState('')
@@ -237,14 +238,7 @@ function RegisterBottom({ state, dispatch }: { state: ILoginState, dispatch: Fun
             setDataTransaction(usernameKey, username),
         ])
         tree.key = secureKey
-        // TOOD: what to do after registering
-        // for now just dispatch
-        dispatch({
-            type: Actions.userTree,
-            username: username,
-            tree: tree,
-        } as IUserTree)
-
+        onLogin(tree)
     }
 
     return (
@@ -256,11 +250,30 @@ function RegisterBottom({ state, dispatch }: { state: ILoginState, dispatch: Fun
     )
 }
 
-export function LoginForm() {
+export function LoginForm(props:RouteProps) {
     const [state, dispatch] = useReducer(reducer, initialState)
+    const [redirect,doRedirect] = useState(false)
+
+    const [_, globalDispatch] = useContext(StoreContext)
 
     const handleUsernameChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
         dispatch({ type: Actions.loginFormType, username: evt.target.value, dispatch: dispatch } as IUsernameType)
+    }
+
+    const onLogin = (tree:ChainTree) => {
+        globalDispatch({
+            type: AppActions.login,
+            userTree: tree,
+        } as IAppLogin)
+        doRedirect(true)
+    }
+
+    let { from } = (props.location && props.location.state) ? props.location.state : { from: { pathname: "/wallet" } };
+
+    if (redirect) {
+        return (
+            <Redirect to={from}/>
+        )
     }
 
     return (
@@ -276,13 +289,10 @@ export function LoginForm() {
                 <Columns.Column size={"half"}>
                     <UsernameField state={state} onChange={handleUsernameChange} />
                     {state.loading && state.username && <Loader style={{ width: 25, height: 25 }} />}
-                    {!state.loading && state.username && state.userTree && <LoginBottom state={state} dispatch={dispatch} />}
-                    {!state.loading && state.username && !state.userTree && <RegisterBottom state={state} dispatch={dispatch} />}
+                    {!state.loading && state.username && state.userTree && <LoginBottom state={state} dispatch={dispatch} onLogin={onLogin}/>}
+                    {!state.loading && state.username && !state.userTree && <RegisterBottom state={state} dispatch={dispatch} onLogin={onLogin} />}
                 </Columns.Column>
             </Columns>
-
-
-
         </div>
     )
 }
