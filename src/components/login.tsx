@@ -1,5 +1,5 @@
-import React, { useReducer } from 'react';
-import { Columns, Heading, Form, Icon, Loader } from 'react-bulma-components';
+import React, { useReducer,useState } from 'react';
+import { Columns, Heading, Form, Icon, Loader, Button } from 'react-bulma-components';
 import { getAppCommunity } from '../util/appcommunity';
 import { EcdsaKey, ChainTree, Tupelo } from 'tupelo-wasm-sdk';
 
@@ -19,13 +19,14 @@ const publicUserKey = async (userName: string) => {
 interface ILoginState {
     loading: boolean
     username: string
-    password:string
+    password: string
     userTree?: ChainTree
 }
 
 enum Actions {
     loginFormType,
-    userTree
+    passwordFormType,
+    userTree,
 }
 
 interface ILoginActions {
@@ -35,6 +36,11 @@ interface ILoginActions {
 interface IUsernameType extends ILoginActions {
     type: Actions.loginFormType
     username: string
+}
+
+interface IPasswordType extends ILoginActions {
+    type: Actions.passwordFormType
+    password: string
 }
 
 interface IUserTree extends ILoginActions {
@@ -66,7 +72,7 @@ const checkUsername = (state: ILoginState, dispatch: Function) => {
         const did = await Tupelo.ecdsaPubkeyToDid(key.publicKey)
 
         let tip
-        let tree:ChainTree|undefined = undefined
+        let tree: ChainTree | undefined = undefined
         try {
             tip = await c.getTip(did)
         } catch (e) {
@@ -80,7 +86,7 @@ const checkUsername = (state: ILoginState, dispatch: Function) => {
                 tip: tip,
             })
         }
-       
+
 
         dispatch({
             type: Actions.userTree,
@@ -100,48 +106,85 @@ function reducer(state: ILoginState, action: ILoginActions) {
         case Actions.loginFormType:
             return { ...state, loading: true, username: (action as IUsernameType).username }
         case Actions.userTree:
-            return {...state, loading:false, userTree: (action as IUserTree).tree}
+            return { ...state, loading: false, userTree: (action as IUserTree).tree }
+        case Actions.passwordFormType:
+            return { ...state, password: (action as IPasswordType).password }
         default:
             throw new Error("unkown type: " + action.type)
     }
 }
 
-const isAvailable = (state:ILoginState)=> {
+const isAvailable = (state: ILoginState) => {
     return !state.loading && state.username && !state.userTree
 }
 
 // colors: '"link" | "success" | "primary" | "info" | "warning" | "danger" | "light" | "dark" | "white" | "black" |
 
-function UsernameField({state, onChange}:{state:ILoginState,onChange:React.ChangeEventHandler}) {
+function UsernameField({ state, onChange }: { state: ILoginState, onChange: React.ChangeEventHandler }) {
     return (
         <Form.Field>
             <Form.Label>Username</Form.Label>
             <Form.Control iconLeft>
                 <Form.Input color={isAvailable(state) ? "success" : "info"} type="text" placeholder="Username" value={state.username} onChange={onChange} />
-                    {state.loading ?
-                     <Icon align="left"><span className="fas fa-spinner fa-pulse" /></Icon>
-                        :
-                      <Icon align="left"><span className="fas fa-user" /></Icon>
-                    }
+                {state.loading ?
+                    <Icon align="left"><span className="fas fa-spinner fa-pulse" /></Icon>
+                    :
+                    <Icon align="left"><span className="fas fa-user" /></Icon>
+                }
             </Form.Control>
-            { isAvailable(state) && <Form.Help color="success">This username is available</Form.Help> }
+            {isAvailable(state) && <Form.Help color="success">This username is available</Form.Help>}
         </Form.Field>
     )
 }
 
-function PasswordField({state, onChange}:{state:ILoginState,onChange:React.ChangeEventHandler}) {
+function PasswordField({ name, value, onChange, error }: { name: string, value: string, error:string, onChange: React.ChangeEventHandler }) {
     return (
         <Form.Field>
-            <Form.Label>Password</Form.Label>
+            <Form.Label>{name}</Form.Label>
             <Form.Control iconLeft>
-                <Form.Input type="password" placeholder="Username" value={state.password} onChange={onChange} />
-                    {state.loading ?
-                     <Icon align="left"><span className="fas fa-spinner fa-pulse" /></Icon>
-                        :
-                      <Icon align="left"><span className="fas fa-key" /></Icon>
-                    }
+                <Form.Input className={error ? "animated pulse faster" : ""} color={error ? "danger" : "info"} type="password" placeholder="Password" value={value} onChange={onChange} />
+                <Icon align="left"><span className="fas fa-key" /></Icon>
             </Form.Control>
+            {error && <Form.Help color="danger">{error}</Form.Help>}
         </Form.Field>
+    )
+}
+
+// the elements at the bottom of a login form
+function LoginBottom({ state, dispatch }: { state: ILoginState, dispatch:Function }) {
+ 
+
+    return (
+        <div>
+        <Button>Login</Button>
+        </div>
+    )
+}
+
+// the elements at the bottom of a login form
+function RegisterBottom({ state, dispatch }: { state: ILoginState, dispatch:Function }) {
+    const [password,setPassword] = useState('')
+    const [passwordConfirm,setPasswordConfirm] = useState('')
+    const [error,setError] = useState('')
+
+    const isConfirmed = ()=> {
+        return password === passwordConfirm
+    }
+
+    const handleSubmit = async ()=> {
+        if (!isConfirmed()) {
+            setError('Passwords do not match')
+            return // do nothing here
+        }
+        // otherwise let's register!
+    }
+
+    return (
+        <div>
+        <PasswordField error={error} name="Password" value={password} onChange={(evt: React.ChangeEvent<HTMLInputElement>)=>{setError(''); setPassword(evt.target.value)}} />
+        <PasswordField error={error} name="Confirm Password" value={passwordConfirm} onChange={(evt: React.ChangeEvent<HTMLInputElement>)=>{setError(''); setPasswordConfirm(evt.target.value)}} />
+        <Button onClick={handleSubmit}>Register</Button>
+        </div>
     )
 }
 
@@ -157,17 +200,17 @@ export function LoginForm() {
         <div>
             <Columns className="is-desktop is-centered">
                 <Columns.Column size={"half"} className="is-centered">
-                    <Heading>Hello</Heading>
-                    <p>Who are you?</p>
+                    <Heading className="animated flipInX fast">Hello</Heading>
+                    <p>Find or create your wallet.</p>
                 </Columns.Column>
             </Columns>
 
             <Columns className="is-desktop is-centered">
                 <Columns.Column size={"half"}>
-                    <form className="is-desktop is-vcentered is-centered">
-                        <UsernameField state={state} onChange={handleUsernameChange}/>
-                        {state.loading && <Loader style={{width:25, height:25}}/>}
-                    </form>
+                        <UsernameField state={state} onChange={handleUsernameChange} />
+                        {state.loading && <Loader style={{ width: 25, height: 25 }} />}
+                        {!state.loading && state.username && state.userTree && <LoginBottom state={state} dispatch={dispatch} />}
+                        {!state.loading && state.username && !state.userTree && <RegisterBottom state={state} dispatch={dispatch} />}
                 </Columns.Column>
             </Columns>
 
