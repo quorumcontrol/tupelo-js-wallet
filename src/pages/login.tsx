@@ -290,7 +290,12 @@ export function LoginForm(props:RouteProps) {
             <Columns className="is-desktop is-centered">
                 <Columns.Column size={"half"}>
                     <UsernameField state={state} onChange={handleUsernameChange} />
-                    {state.loading && state.username && <Loader style={{ width: 25, height: 25 }} />}
+                    {state.loading && state.username && 
+                        <div>
+                            <Loader style={{ width: 25, height: 25 }} />
+                            <p className="animated flipInX fast">Scouring the DLT for this username.</p>
+                        </div>
+                    }
                     {!state.loading && state.username && state.userTree && <LoginBottom state={state} dispatch={dispatch} onLogin={onLogin}/>}
                     {!state.loading && state.username && !state.userTree && <RegisterBottom state={state} dispatch={dispatch} onLogin={onLogin} />}
                 </Columns.Column>
