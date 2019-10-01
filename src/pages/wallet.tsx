@@ -26,11 +26,14 @@ export function Wallet(props: RouteProps) {
     }
 
     const pageContent = (tab: tabs) => {
+        if (globalState.userTree === undefined) {
+            throw new Error("can't get page content without a usertree")
+        }
         switch (tab) {
             case tabs.tokens:
                 return <TokenWallet />
             case tabs.creator:
-                return <ObjectCreator />
+                return <ObjectCreator userTree={globalState.userTree} />
             case tabs.objects:
                 return <ObjectWallet />
             default:
@@ -50,6 +53,7 @@ export function Wallet(props: RouteProps) {
     return (
         <Container>
             <Heading>Wallet</Heading>
+            <h1>did: {globalState.userDid}</h1>
             <Tabs>
                 <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.objects}>Objects</Tabs.Tab>
                 <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.tokens}>Tokens</Tabs.Tab>

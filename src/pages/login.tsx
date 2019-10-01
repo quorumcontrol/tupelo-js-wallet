@@ -15,7 +15,7 @@ const namespace = Buffer.from("_wallet-dev")
  * The very first thing you do with the ChainTree should be to ChangeOwner
  * @param userName - the username
  */
-const publicUserKey = async (userName: string) => {
+export const publicUserKey = async (userName: string) => {
     return EcdsaKey.passPhraseKey(Buffer.from(userName), namespace)
 }
 
@@ -114,7 +114,6 @@ function reducer(state: ILoginState, action: ILoginActions) {
     switch (action.type) {
         case Actions.loginFormType:
             const username = (action as IUsernameType).username
-            console.log('reducer: ', username)
             checkUsername(state, (action as IUsernameType).dispatch)
             return { ...state, loading: true, username: username }
         case Actions.userTree:
