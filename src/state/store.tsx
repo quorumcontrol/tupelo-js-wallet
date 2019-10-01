@@ -2,6 +2,18 @@ import React, { createContext, useReducer, useEffect, useState } from "react";
 import { ChainTree, EcdsaKey } from "tupelo-wasm-sdk";
 import { getAppCommunity } from "../util/appcommunity";
 
+declare const Go: any;
+
+if (window) {
+  const subDirectory = window.location.pathname
+  console.log("subDirectory ", subDirectory)
+  
+  if (subDirectory !== '/') {
+      console.log("setting wasmpath to: ",  subDirectory + "tupelo.wasm")
+      Go.setWasmPath(subDirectory + "tupelo.wasm");
+  }
+}
+
 interface IAppState {
   userTree?: ChainTree
   username?: string
