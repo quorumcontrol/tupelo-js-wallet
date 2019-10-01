@@ -5,7 +5,7 @@ import { Navbar, Container,Loader, Columns, Section } from 'react-bulma-componen
 import { LoginForm } from './pages/login';
 import { StoreProvider, StoreContext } from './state/store';
 
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { HashRouter as Router, Switch, Route } from "react-router-dom";
 import { Wallet } from './pages/wallet';
 
 const Routing = () => {
