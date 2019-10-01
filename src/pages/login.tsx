@@ -216,29 +216,32 @@ function RegisterBottom({ state, dispatch, onLogin }: { state: ILoginState, disp
         return password === passwordConfirm
     }
 
-    const handleSubmit = async () => {
+    const handleSubmit = () => {
         if (!isConfirmed()) {
             setError('Passwords do not match')
             return // do nothing here
         }
         dispatch({ type: Actions.registering })
-        const username = state.username
-        const insecureKey = await publicUserKey(username)
-
-        const secureKey = await EcdsaKey.passPhraseKey(Buffer.from(password), Buffer.from(username))
-        const secureKeyAddress = await Tupelo.ecdsaPubkeyToAddress(secureKey.publicKey)
-
-        const community = await getAppCommunity()
-        const tree = await ChainTree.newEmptyTree(community.blockservice, insecureKey)
-
-        await community.playTransactions(tree, [
-            // Set the ownership of the chaintree to our secure key (thus owning the username)
-            setOwnershipTransaction([secureKeyAddress]),
-            // Cache the username inside of the chaintree for easier access later
-            setDataTransaction(usernameKey, username),
-        ])
-        tree.key = secureKey
-        onLogin(tree)
+        const doRegister = async ()=> {
+            const username = state.username
+            const insecureKey = await publicUserKey(username)
+    
+            const secureKey = await EcdsaKey.passPhraseKey(Buffer.from(password), Buffer.from(username))
+            const secureKeyAddress = await Tupelo.ecdsaPubkeyToAddress(secureKey.publicKey)
+    
+            const community = await getAppCommunity()
+            const tree = await ChainTree.newEmptyTree(community.blockservice, insecureKey)
+    
+            await community.playTransactions(tree, [
+                // Set the ownership of the chaintree to our secure key (thus owning the username)
+                setOwnershipTransaction([secureKeyAddress]),
+                // Cache the username inside of the chaintree for easier access later
+                setDataTransaction(usernameKey, username),
+            ])
+            tree.key = secureKey
+            onLogin(tree)
+        }
+        doRegister()
     }
 
     return (

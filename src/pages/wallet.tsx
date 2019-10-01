@@ -1,23 +1,61 @@
-import React, {useContext} from 'react'
-import { StoreContext } from '../state/store'
-import { Redirect, RouteProps } from 'react-router'
+import React, { useContext, useEffect, useState } from 'react';
+import { StoreContext } from '../state/store';
+import { Redirect, RouteProps } from 'react-router';
+import { Tabs, Container, Heading } from 'react-bulma-components';
+import { TokenWallet } from '../components/tokenwallet';
+import { ObjectCreator } from '../components/creator';
+import { ObjectWallet } from '../components/objectwallet';
 
-export function Wallet(props:RouteProps) {
+enum tabs {
+    objects,
+    tokens,
+    creator,
+}
+type tabStrings = keyof typeof tabs;
 
+export function Wallet(props: RouteProps) {
+
+    const [state, setState] = useState({
+        currentTab: tabs.objects,
+    })
     const [globalState] = useContext(StoreContext)
+
+    const clickHandler = (evt: any) => {
+        const tabStr: tabStrings = evt.target.innerText.toLowerCase()
+        setState({ ...state, currentTab: tabs[tabStr] })
+    }
+
+    const pageContent = (tab: tabs) => {
+        switch (tab) {
+            case tabs.tokens:
+                return <TokenWallet />
+            case tabs.creator:
+                return <ObjectCreator />
+            case tabs.objects:
+                return <ObjectWallet />
+            default:
+                throw new Error("unrecognized tab: " + tab)
+        }
+    }
 
     if (!globalState.userTree) {
         return (
             <Redirect to={{
                 pathname: "/login",
-                state: { from: props.location},
-            }}/>
+                state: { from: props.location },
+            }} />
         )
     }
 
     return (
-        <div>
-            <h1>Wallet</h1>
-        </div>
+        <Container>
+            <Heading>Wallet</Heading>
+            <Tabs>
+                <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.objects}>Objects</Tabs.Tab>
+                <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.tokens}>Tokens</Tabs.Tab>
+                <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.creator}>Creator</Tabs.Tab>
+            </Tabs>
+            {pageContent(state.currentTab)}
+        </Container>
     )
 }
