@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { StoreContext } from '../state/store';
 import { Redirect, RouteProps } from 'react-router';
 import { Tabs, Container, Heading } from 'react-bulma-components';

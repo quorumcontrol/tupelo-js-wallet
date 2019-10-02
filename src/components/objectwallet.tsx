@@ -22,18 +22,21 @@ function NFTCard({ did, onSend }: { did: string, onSend: Function }) {
         destination: "",
     })
 
-    const loadNFT = async () => {
-        const c = await getAppCommunity()
-        const tip = await c.getTip(did)
-        const tree = new ChainTree({
-            store: c.blockservice,
-            tip: tip,
-        })
-        const attrsResp = await tree.resolveData("/_wallet/attributes")
-        setState({ ...state, loading: false, tree: tree, attrs: (attrsResp.value || {}) })
-    }
-
+    
     useEffect(() => {
+        const loadNFT = async () => {
+            const c = await getAppCommunity()
+            const tip = await c.getTip(did)
+            const tree = new ChainTree({
+                store: c.blockservice,
+                tip: tip,
+            })
+            const attrsResp = await tree.resolveData("/_wallet/attributes")
+            setState((s) => {
+                return { ...s, loading: false, tree: tree, attrs: (attrsResp.value || {}) }
+            })
+        }
+
         loadNFT()
     }, [did])
 
@@ -107,14 +110,6 @@ export function ObjectWallet() {
         addLoading: false,
     })
 
-    const getObjects = async () => {
-        if (globalState.userTree === undefined) {
-            throw new Error("user tree has to be defined")
-        }
-        const tResp = await globalState.userTree.resolveData("/_wallet/nfts")
-        setState({ ...state, dids: (tResp.value || {}) })
-    }
-
     const onSend = async (evt: IOnSendEvent) => {
         const userTree = globalState.userTree
         if (userTree === undefined || userTree.key === undefined) {
@@ -149,6 +144,16 @@ export function ObjectWallet() {
     }
 
     useEffect(() => {
+        const getObjects = async () => {
+            if (globalState.userTree === undefined) {
+                throw new Error("user tree has to be defined")
+            }
+            const tResp = await globalState.userTree.resolveData("/_wallet/nfts")
+            setState((s) => {
+                return { ...s, dids: (tResp.value || {}) }
+            })
+        }
+
         if (globalState.userTree) {
             getObjects()
         }

@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react'
 import { StoreContext } from '../state/store'
 import { Redirect, RouteProps } from 'react-router'
-import { Section, Table, Loader, Heading } from 'react-bulma-components'
+import { Table, Loader } from 'react-bulma-components'
 
 const tokenPath = "/tree/_tupelo/tokens";
 
@@ -17,11 +17,27 @@ export function TokenWallet(props: RouteProps) {
     const [globalState] = useContext(StoreContext)
 
     useEffect(() => {
+        const loadTokens = async () => {
+            if (globalState.userTree === undefined) {
+                throw new Error("user tree must be defined")
+            }
+            let tokenResp: any
+            try {
+                tokenResp = await globalState.userTree.resolve(tokenPath)
+            } catch (e) {
+                console.log("e: ", e)
+                setState({ ...state, tokens: {}, loading: false })
+            }
+    
+            console.log("tokens resp: ", tokenResp)
+            setState({ ...state, tokens: tokenResp.value, loading: false })
+        }
+
         if (state.firstRun && globalState.userTree) {
             setState({ ...state, firstRun: false })
             loadTokens()
         }
-    }, [globalState.userTree])
+    }, [globalState.userTree, state])
 
     if (!globalState.userTree) {
         return (
@@ -31,24 +47,6 @@ export function TokenWallet(props: RouteProps) {
             }} />
         )
     }
-
-    const loadTokens = async () => {
-        if (globalState.userTree === undefined) {
-            throw new Error("user tree must be defined")
-        }
-        let tokenResp: any
-        try {
-            tokenResp = await globalState.userTree.resolve(tokenPath)
-        } catch (e) {
-            console.log("e: ", e)
-            setState({ ...state, tokens: {}, loading: false })
-        }
-
-        console.log("tokens resp: ", tokenResp)
-        setState({ ...state, tokens: tokenResp.value, loading: false })
-    }
-
-
 
     return (
         <div>

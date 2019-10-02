@@ -132,7 +132,7 @@ const StoreProvider = ({ children }: { children: JSX.Element[] }) => {
 
       console.log({ newState: state });
     },
-    [state]
+    [state, firstRun]
   );
 
   // Render state, dispatch and special case actions

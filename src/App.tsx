@@ -9,7 +9,7 @@ import { HashRouter as Router, Switch, Route } from "react-router-dom";
 import { Wallet } from './pages/wallet';
 
 const Routing = () => {
-  const [globalState, globalDispatch] = useContext(StoreContext)
+  const [globalState] = useContext(StoreContext)
 
 
   return (

@@ -256,7 +256,7 @@ export function LoginForm(props:RouteProps) {
     const [state, dispatch] = useReducer(reducer, initialState)
     const [redirect,doRedirect] = useState(false)
 
-    const [_, globalDispatch] = useContext(StoreContext)
+    const [,globalDispatch] = useContext(StoreContext)
 
     const handleUsernameChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
         dispatch({ type: Actions.loginFormType, username: evt.target.value, dispatch: dispatch } as IUsernameType)
