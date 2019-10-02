@@ -30,10 +30,13 @@ export function TokenWallet(props: RouteProps) {
             }
     
             console.log("tokens resp: ", tokenResp)
-            setState({ ...state, tokens: tokenResp.value, loading: false })
+            setState((s) => {
+                return { ...s, tokens: tokenResp.value, loading: false }
+            })
         }
 
         if (state.firstRun && globalState.userTree) {
+            console.log("loading tokens: ", state)
             setState({ ...state, firstRun: false })
             loadTokens()
         }

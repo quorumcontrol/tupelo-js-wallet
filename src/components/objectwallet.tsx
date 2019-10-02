@@ -140,7 +140,9 @@ export function ObjectWallet() {
         await c.playTransactions(userTree, [
             setDataTransaction("/_wallet/nfts", withoutSent)
         ])
-        setState({ ...state, dids: withoutSent })
+        setState((s) => {
+            return { ...s, dids: withoutSent }
+        })
     }
 
     useEffect(() => {
