@@ -14,11 +14,11 @@ export function TokenWallet(props: RouteProps) {
 
     const [state, setState] = useState({
         loading: true,
-        firstRun: true,
         tokens: {},
         showEstablishModal: false,
         showMintModal: false,
         showSendModal: false,
+        modifiedAt: 0,
     })
 
     const [globalState] = useContext(StoreContext)
@@ -32,22 +32,22 @@ export function TokenWallet(props: RouteProps) {
             try {
                 tokenResp = await globalState.userTree.resolve(tokenPath)
             } catch (e) {
-                console.log("e: ", e)
-                setState({ ...state, tokens: {}, loading: false })
+                console.error("e: ", e)
+                setState((s) => {
+                    return { ...s, tokens: {}, loading: false }
+                })
             }
 
             console.log("tokens resp: ", tokenResp)
             setState((s) => {
-                return { ...s, tokens: tokenResp.value, loading: false }
+                return { ...s, tokens: (tokenResp.value || {}), loading: false }
             })
         }
 
-        if (state.firstRun && globalState.userTree) {
-            console.log("loading tokens: ", state)
-            setState({ ...state, firstRun: false })
-            loadTokens()
-        }
-    }, [globalState.userTree, state])
+        console.log("loading tokens")
+        loadTokens()
+        
+    }, [globalState.userTree, state.modifiedAt])
 
     if (!globalState.userTree) {
         return (
@@ -66,14 +66,19 @@ export function TokenWallet(props: RouteProps) {
         if (globalState.userTree === undefined) {
             throw new Error("undefined user tree!")
         }
-        return <TokenRow key={tokenName} tree={globalState.userTree} tokenName={tokenName} />
+        return <TokenRow key={tokenName} modifiedAt={state.modifiedAt} tree={globalState.userTree} tokenName={tokenName} />
     })
+
+    const handleCloseModal = ()=> {
+        console.log("setting modifiedAt")
+        setState((s) => {return {...s, modifiedAt: Date.now()}})
+    }
 
     return (
         <div>
-            <EstablishTokenDialog userTree={globalState.userTree} show={state.showEstablishModal} onClose={() => { setState({ ...state, showEstablishModal: false }) }} />
-            <MintTokenDialog tokens={state.tokens} userTree={globalState.userTree} show={state.showMintModal} onClose={() => { setState({ ...state, showMintModal: false }) }} />
-            <SendTokenDialog tokens={state.tokens} userTree={globalState.userTree} show={state.showSendModal} onClose={() => { setState({ ...state, showSendModal: false }) }} />
+            <EstablishTokenDialog userTree={globalState.userTree} show={state.showEstablishModal} onClose={() => { handleCloseModal(); setState({ ...state, showEstablishModal: false }) }} />
+            <MintTokenDialog tokens={state.tokens} userTree={globalState.userTree} show={state.showMintModal} onClose={() => { handleCloseModal(); setState({ ...state, showMintModal: false }) }} />
+            <SendTokenDialog tokens={state.tokens} userTree={globalState.userTree} show={state.showSendModal} onClose={() => { handleCloseModal(); setState({ ...state, showSendModal: false }) }} />
             <Level>
                 <Level.Side align="left">
                     <Level.Item>
@@ -104,7 +109,7 @@ export function TokenWallet(props: RouteProps) {
 }
 
 
-export const TokenRow = ({ tree, tokenName }: { tree: ChainTree, tokenName: string }) => {
+export const TokenRow = ({ tree, tokenName, modifiedAt }: { modifiedAt: number, tree: ChainTree, tokenName: string }) => {
     const [state, setState] = useState({
         balance: 0,
         max: null,
@@ -117,7 +122,7 @@ export const TokenRow = ({ tree, tokenName }: { tree: ChainTree, tokenName: stri
             const tokenInfoResp = await tree.resolve(tokenInfoPath)
             console.log("tokenInfoResp ", tokenInfoPath, tokenInfoResp)
             if (tokenInfoResp.value.monetaryPolicy) {
-                const monetaryPolicy = await tree.resolve(tokenInfoPath + "/" + "monetaryPolicy")
+                const monetaryPolicy = await tree.resolve(tokenInfoPath + "/monetaryPolicy")
                 setState((s) => { return { ...s, max: monetaryPolicy.value['maximum'] } })
             }
 
@@ -125,9 +130,9 @@ export const TokenRow = ({ tree, tokenName }: { tree: ChainTree, tokenName: stri
                 return { ...s, balance: tokenInfoResp.value['balance'], loading: false }
             })
         }
-
+        console.log("loading tokenRow")
         loadInfo()
-    }, [tree, tokenName])
+    }, [tree, tokenName, modifiedAt])
 
     return (
         <tr>

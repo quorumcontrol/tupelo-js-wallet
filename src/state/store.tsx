@@ -7,10 +7,10 @@ declare const Go: any;
 if (window) {
   const subDirectory = window.location.pathname
   console.log("subDirectory ", subDirectory)
-  
+
   if (subDirectory !== '/') {
-      console.log("setting wasmpath to: ",  subDirectory + "tupelo.wasm")
-      Go.setWasmPath(subDirectory + "tupelo.wasm");
+    console.log("setting wasmpath to: ", subDirectory + "tupelo.wasm")
+    Go.setWasmPath(subDirectory + "tupelo.wasm");
   }
 }
 
@@ -19,6 +19,14 @@ interface IAppState {
   username?: string
   userDid?: string
   loading: number
+  messages: IAppMessage[]
+}
+
+export interface IAppMessage {
+  id?: string
+  color?: string
+  title: string
+  body: string
 }
 
 export enum AppActions {
@@ -26,6 +34,8 @@ export enum AppActions {
   stopLoading,
   login,
   setDID,
+  removeMessage,
+  message,
 }
 
 export interface IAppAction {
@@ -45,28 +55,56 @@ export interface IAppLogin extends IAppAction {
   userTree: ChainTree
 }
 
+export interface IAppRemoveMessage extends IAppAction {
+  type: AppActions.removeMessage,
+  id: string
+}
+
+export interface IAppMessage extends IAppAction {
+  type: AppActions.message,
+  message: IAppMessage,
+}
+
 interface IAppSetDid extends IAppAction {
   type: AppActions.setDID
   did: string
 }
 
 function reducer(state: IAppState, action: IAppAction) {
+  let act
   switch (action.type) {
     case AppActions.loading:
       return { ...state, loading: state.loading + 1 }
     case AppActions.stopLoading:
       return { ...state, loading: state.loading - 1 }
     case AppActions.login:
-      const act = action as IAppLogin
+      act = action as IAppLogin
       return { ...state, userTree: act.userTree }
     case AppActions.setDID:
       return { ...state, userDid: (action as IAppSetDid).did }
+    case AppActions.message:
+      const msg = (action as IAppMessage).message
+      msg.id = (new Date()).toString() + "-" + msg.title + Math.random().toString()
+      return { ...state, messages: [...state.messages, msg] }
+    case AppActions.removeMessage:
+      const id = (action as IAppRemoveMessage).id
+      let index = -1;
+      for (var i = state.messages.length - 1; i >= 0; i--) {
+        if (state.messages[i].id === id) {
+          index = i
+          break;
+        }
+      }
+      if (index === -1) {
+        return state // nothing to do here
+      }
+      return { ...state, messages: [...state.messages.slice(0, index), ...state.messages.slice(index + 1)] }
     default:
       throw new Error("unkown type: " + action.type)
   }
 }
 
-const initialState = { loading: 1 } as IAppState
+const initialState = { loading: 1, messages: [] } as IAppState
 
 const StoreContext = createContext([initialState, () => { }] as [IAppState, React.Dispatch<IAppAction>]);
 
@@ -82,7 +120,7 @@ const StoreProvider = ({ children }: { children: JSX.Element[] }) => {
 
         const did = sessionStorage.getItem('userDid')
         const userKey = sessionStorage.getItem('userKey')
-        const doAsyncSet = async ()=> {
+        const doAsyncSet = async () => {
           if (!did || !userKey) {
             throw new Error("no did or no userKey")
           }

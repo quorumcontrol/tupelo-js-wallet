@@ -1,18 +1,24 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 
 import { Modal, Form, Button, Media,Content, Loader } from 'react-bulma-components'
-import { ChainTree, receiveTokenTransactionFromPayload, EcdsaKey, sendTokenTransaction, setOwnershipTransaction, receiveTokenTransaction } from 'tupelo-wasm-sdk'
+import { ChainTree, receiveTokenTransactionFromPayload, EcdsaKey, sendTokenTransaction, setOwnershipTransaction } from 'tupelo-wasm-sdk'
 import { getAppCommunity } from '../util/appcommunity'
 import { getUserTree } from '../util/usernames'
+import { StoreContext, IAppMessage } from '../state/store'
 
 //TODO: this would be nice with error handling, etc
 
+//TODO(bug): if you let the browser autofill a field it doesn't trigger change and so it doesn't update the state
+// so you end up with null names
+
 export function SendTokenDialog({ show, onClose, userTree, tokens }: { tokens: Object, userTree: ChainTree, show: boolean, onClose: (() => void) }) {
+    const [,globalDispatch] = useContext(StoreContext)
+    
     const [state, setState] = useState({
         loading: false,
         tokenName: '',
         destination: '',
-        ammount: 0,
+        ammount: '',
     })
 
     const handleChange = (evt: React.ChangeEvent<HTMLInputElement|HTMLSelectElement>) => {
@@ -22,6 +28,7 @@ export function SendTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
     const handleSubmit = () => {
         setState({...state, loading: true})
         const doAsync = async ()=> {
+            console.log("sending: ", state)
             /*
                 get destination chain,
                 create a new ephemeral chaintree
@@ -43,25 +50,39 @@ export function SendTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
             }
 
             console.log("ephemeralDID: ", ephemeralDid)
-            const userAuthResp = await userTree.resolve("tree/_tupelo/authentications")
-            const destAuthResp = await destTree.resolve("tree/_tupelo/authentications")
+            // const userAuthResp = await userTree.resolve("tree/_tupelo/authentications")
+            // const destAuthResp = await destTree.resolve("tree/_tupelo/authentications")
 
             const sendId = userDid + "->" + destDid
 
-            const payload = await c.sendTokenAndGetPayload(userTree, sendTokenTransaction(
+            console.log("sending token to ephemeral")
+            const sendTx = sendTokenTransaction(
                 sendId,
                 state.tokenName,
-                state.ammount,
+                parseInt(state.ammount, 10),
                 ephemeralDid,
-            ))
+            )
+            console.log("send tx: ", sendTx.toObject())
+            const payload = await c.sendTokenAndGetPayload(userTree, sendTx)
 
+            console.log("receiving on ephemeral, payload: ", payload.toObject())
+            let receiveTx = receiveTokenTransactionFromPayload(payload)
+
+            console.log("receiveTx: ", receiveTx.toObject())
             await c.playTransactions(ephemeralTree, [
-                setOwnershipTransaction(userAuthResp.value.concat(destAuthResp.value)),
-                receiveTokenTransactionFromPayload(payload),
+                // setOwnershipTransaction(userAuthResp.value.concat(destAuthResp.value)),
+                receiveTx,
             ])
+            console.log('done')
             
-            setState({...state, loading: false, tokenName: '', destination: '', ammount: 0})
+            setState({...state, loading: false, tokenName: '', destination: '', ammount: ''})
             onClose()
+            globalDispatch({
+                message: {
+                    title: "Sent!",
+                    body: "Tell " + state.destination + " to use this: " + ephemeralDid, 
+                }
+            } as IAppMessage)
         }
         doAsync()
     }
@@ -103,7 +124,7 @@ export function SendTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
                         <Form.Field>
                             <Form.Label>Ammount</Form.Label>
                             <Form.Control>
-                                <Form.Input type="number" value={state.ammount.toString()} onChange={handleChange} name="ammount" placeholder="Ammount to Mint" />
+                                <Form.Input type="number" value={state.ammount.toString()} onChange={handleChange} name="ammount" placeholder="Ammount to send" />
                             </Form.Control>
                         </Form.Field>
                         <Form.Field kind="group">
