@@ -24,6 +24,7 @@ interface ILoginState {
     username: string
     password: string
     userTree?: ChainTree
+    loadingText: string
 }
 
 enum Actions {
@@ -60,6 +61,7 @@ const initialState = {
     loading: false,
     username: '',
     password: '',
+    loadingText: '',
 }
 
 
@@ -115,7 +117,7 @@ function reducer(state: ILoginState, action: ILoginActions) {
         case Actions.loginFormType:
             const username = (action as IUsernameType).username
             checkUsername(state, (action as IUsernameType).dispatch)
-            return { ...state, loading: true, username: username }
+            return { ...state, loading: true, loginText: 'Checking for username availability', username: username }
         case Actions.userTree:
             const act = action as IUserTree
             console.log("user tree received: ", act.username, " state: ", state.username)
@@ -124,13 +126,13 @@ function reducer(state: ILoginState, action: ILoginActions) {
                 checkUsername(state, act.dispatch)
                 return state // don't update anything yet
             }
-            return { ...state, loading: false, userTree: (action as IUserTree).tree }
+            return { ...state, loading: false, loadingText: '', userTree: (action as IUserTree).tree }
         case Actions.passwordFormType:
             return { ...state, password: (action as IPasswordType).password }
         case Actions.registering:
-            return { ...state, loading: true }
+            return { ...state, loading: true, loadingText: 'Registering your user' }
         case Actions.loggingIn:
-            return { ...state, loading: true }
+            return { ...state, loading: true, loadingText: 'Logging in' }
         default:
             throw new Error("unkown type: " + action.type)
     }
@@ -293,7 +295,7 @@ export function LoginForm(props:RouteProps) {
                     {state.loading && state.username && 
                         <div>
                             <Loader style={{ width: 25, height: 25 }} />
-                            <p className="animated flipInX fast">Scouring the DLT for this username.</p>
+                            <p className="animated flipInX fast">{state.loadingText}</p>
                         </div>
                     }
                     {!state.loading && state.username && state.userTree && <LoginBottom state={state} dispatch={dispatch} onLogin={onLogin}/>}

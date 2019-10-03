@@ -22,7 +22,7 @@ function NFTCard({ did, onSend }: { did: string, onSend: Function }) {
         destination: "",
     })
 
-    
+
     useEffect(() => {
         const loadNFT = async () => {
             const c = await getAppCommunity()
@@ -103,12 +103,15 @@ function NFTCard({ did, onSend }: { did: string, onSend: Function }) {
 }
 
 export function ObjectWallet() {
+
     const [globalState] = useContext(StoreContext)
     const [state, setState] = useState({
         dids: {} as { [index: string]: number },
-        addDid: "",
-        addLoading: false,
     })
+
+    if (globalState.userTree === undefined) {
+        throw new Error("must have a userTree to use ObjectWallet")
+    }
 
     const onSend = async (evt: IOnSendEvent) => {
         const userTree = globalState.userTree
@@ -169,12 +172,35 @@ export function ObjectWallet() {
         )
     })
 
-    const handleAdd = ()=> {
-        setState({...state, addLoading: true})
-        const did = state.addDid
-        const doAsync = async ()=> {
-            const userTree = globalState.userTree
+    const handleAdd = function(did:string) {
+        setState((s) => {
+            return {...s, dids: {...state.dids, [did]: Date.now()}}
+        })
+    }
 
+
+    return (
+        <div>
+            <Heading>Object wallet</Heading>
+            <Columns>
+                {cards}
+            </Columns>
+            <AddObjectForm onAdd={handleAdd} userTree={globalState.userTree} />
+        </div>
+    )
+}
+
+const AddObjectForm = ({ userTree, onAdd }: { userTree: ChainTree, onAdd:Function }) => {
+    const [state, setState] = useState({
+        addOpen: false,
+        addDid: "",
+        addLoading: false,
+    })
+
+    const handleAdd = () => {
+        setState({ ...state, addLoading: true })
+        const did = state.addDid
+        const doAsync = async () => {
             if (userTree === undefined || userTree.key === undefined) {
                 throw new Error("user tree undfined")
             }
@@ -193,37 +219,32 @@ export function ObjectWallet() {
                 await c.playTransactions(userTree, [
                     setDataTransaction("/_wallet/nfts/" + did, Date.now())
                 ])
-                setState({...state, dids: {...state.dids, [did]: Date.now()}, addLoading: false, addDid: ""})
-            } else {
-                setState({...state, addLoading: false, addDid: ""})
+                onAdd(did)
+                setState({ ...state, addLoading: false, addDid: "" })
             }
+            setState({ ...state, addLoading: false, addDid: "",addOpen: false })
         }
         doAsync()
     }
 
     return (
         <div>
-            <Heading>Object wallet</Heading>
-            <Columns>
-                {cards}
-            </Columns>
-            <Box>
-                {state.addLoading ?
-                <Loader/>
+            {state.addOpen ?
+                <Box>
+                    <Form.Field>
+                        <Form.Label>Add</Form.Label>
+                        <Form.Control>
+                            <Form.Input value={state.addDid} onChange={(evt) => { setState({ ...state, addDid: evt.target.value }) }} name="additionalDid" placeholder="DID" />
+                        </Form.Control>
+                    </Form.Field>
+                    <Form.Field kind="group">
+                        <Button onClick={handleAdd} color="primary">Add</Button>
+                        <Button text onClick={() => { setState((s) => { return { ...s, addOpen: false, addDid: '' } }) }}>Cancel</Button>
+                    </Form.Field>
+                </Box>
                 :
-                <div>
-                <Form.Field>
-                    <Form.Label>Add</Form.Label>
-                    <Form.Control>
-                        <Form.Input value={state.addDid} onChange={(evt)=> {setState({...state, addDid: evt.target.value})}} name="additionalDid" placeholder="DID" />
-                    </Form.Control>
-                </Form.Field>
-                <Form.Field kind="group">
-                    <Button onClick={handleAdd} color="primary">Add</Button>
-                </Form.Field>
-                </div>
-                }
-            </Box>
+                <Button onClick={() => { setState((s) => { return { ...s, addOpen: true } }) }}>Add</Button>
+            }
         </div>
     )
 }
