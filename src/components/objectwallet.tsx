@@ -56,7 +56,7 @@ function NFTCard({ did, onSend }: { did: string, onSend: Function }) {
     return (
         <Card>
             <Card.Header>
-                <Card.Header.Title>{did}</Card.Header.Title>
+                <Card.Header.Title>{state.attrs.title}</Card.Header.Title>
             </Card.Header>
             <Card.Content>
                 {state.loading ?
@@ -75,6 +75,7 @@ function NFTCard({ did, onSend }: { did: string, onSend: Function }) {
                         </Media>
                         <Content>
                             {state.attrs.content}
+                            <p>{did}</p>
                         </Content>
                     </div>}
             </Card.Content>
