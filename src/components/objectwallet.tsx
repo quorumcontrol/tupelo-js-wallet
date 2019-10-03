@@ -4,7 +4,7 @@ import { StoreContext } from '../state/store';
 import { ChainTree, Tupelo, setOwnershipTransaction, setDataTransaction } from 'tupelo-wasm-sdk';
 import { getAppCommunity } from '../util/appcommunity';
 import { INFTProperties } from './creator';
-import { publicUserKey } from '../pages/login';
+import { getUserTree } from '../util/usernames';
 
 interface IOnSendEvent {
     did: string
@@ -81,8 +81,8 @@ function NFTCard({ did, onSend }: { did: string, onSend: Function }) {
             </Card.Content>
             <Card.Footer>
                 {!state.sending ?
-                    <Card.Footer.Item onClick={() => { setState({ ...state, sending: true }) }}>
-                        Send
+                    <Card.Footer.Item>
+                        <Button onClick={() => { setState({ ...state, sending: true }) }}>Send</Button>
                     </Card.Footer.Item>
                     :
                     <Content style={{ padding: '1em' }}>
@@ -121,18 +121,11 @@ export function ObjectWallet() {
         }
         const c = await getAppCommunity()
 
-        const destinationKey = await publicUserKey(evt.destination)
-        const destionationDid = await Tupelo.ecdsaPubkeyToDid(destinationKey.publicKey)
-
-        const destTip = await c.getTip(destionationDid)
-        const destTree = new ChainTree({
-            store: c.blockservice,
-            tip: destTip
-        })
+        const destTree = await getUserTree(evt.destination)
         const authResp = await destTree.resolve("tree/_tupelo/authentications")
 
         evt.tree.key = userTree.key
-        console.log("reassigning ", evt.did, " to: ", destionationDid)
+        console.log("reassigning ", evt.did, " to: ", evt.destination)
         // set the auth of this NFT to the same as the receiver
         await c.playTransactions(evt.tree, [
             setOwnershipTransaction(authResp.value)
@@ -178,7 +171,6 @@ export function ObjectWallet() {
             return {...s, dids: {...state.dids, [did]: Date.now()}}
         })
     }
-
 
     return (
         <div>

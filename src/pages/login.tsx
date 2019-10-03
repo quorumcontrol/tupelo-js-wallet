@@ -4,20 +4,7 @@ import { getAppCommunity } from '../util/appcommunity';
 import { EcdsaKey, ChainTree, Tupelo, setOwnershipTransaction, setDataTransaction } from 'tupelo-wasm-sdk';
 import { RouteProps, Redirect } from 'react-router';
 import {StoreContext, AppActions, IAppLogin} from '../state/store'
-
-
-export const usernameKey = "/_wallet/username"
-const namespace = Buffer.from("_wallet-dev")
-
-/**
- * Generates a public/private keypair from an *insecure* passphrase.
- * This method is used to generate a ChainTree with a known name (given a namespace)
- * The very first thing you do with the ChainTree should be to ChangeOwner
- * @param userName - the username
- */
-export const publicUserKey = async (userName: string) => {
-    return EcdsaKey.passPhraseKey(Buffer.from(userName), namespace)
-}
+import {publicUserKey, usernameKey} from '../util/usernames'
 
 interface ILoginState {
     loading: boolean
