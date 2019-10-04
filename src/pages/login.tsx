@@ -251,10 +251,13 @@ export function LoginForm(props:RouteProps) {
         dispatch({ type: Actions.loginFormType, username: evt.target.value, dispatch: dispatch } as IUsernameType)
     }
 
-    const onLogin = (tree:ChainTree) => {
+    const onLogin = async (tree:ChainTree) => {
+        const did = await tree.id()
         globalDispatch({
             type: AppActions.login,
             userTree: tree,
+            username: state.username,
+            did: did,
         } as IAppLogin)
         doRedirect(true)
     }

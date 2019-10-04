@@ -1,6 +1,7 @@
 import React, { createContext, useReducer, useEffect, useState } from "react";
 import { ChainTree, EcdsaKey } from "tupelo-wasm-sdk";
 import { getAppCommunity } from "../util/appcommunity";
+import { usernameKey } from "../util/usernames";
 
 declare const Go: any;
 
@@ -37,6 +38,7 @@ export enum AppActions {
   removeMessage,
   message,
   logout,
+  setUsername,
 }
 
 export interface IAppAction {
@@ -54,6 +56,8 @@ export interface IAppStopLoading extends IAppAction {
 export interface IAppLogin extends IAppAction {
   type: AppActions.login
   userTree: ChainTree
+  username: string
+  did: string
 }
 
 export interface IAppRemoveMessage extends IAppAction {
@@ -66,13 +70,18 @@ export interface IAppMessage extends IAppAction {
   message: IAppMessage,
 }
 
+export interface IAppLogout extends IAppAction {
+  type: AppActions.logout
+}
+
 interface IAppSetDid extends IAppAction {
   type: AppActions.setDID
   did: string
 }
 
-export interface IAppLogout extends IAppAction {
-  type: AppActions.logout
+interface IAppSetUsername extends IAppAction {
+  type: AppActions.setUsername
+  username: string
 }
 
 function reducer(state: IAppState, action: IAppAction) {
@@ -84,9 +93,11 @@ function reducer(state: IAppState, action: IAppAction) {
       return { ...state, loading: state.loading - 1 }
     case AppActions.login:
       act = action as IAppLogin
-      return { ...state, userTree: act.userTree }
+      return { ...state, userTree: act.userTree, username: act.username, did: act.did }
     case AppActions.setDID:
       return { ...state, userDid: (action as IAppSetDid).did }
+    case AppActions.setUsername:
+      return { ...state, username: (action as IAppSetUsername).username }
     case AppActions.logout:
       sessionStorage.removeItem('userDid')
       sessionStorage.removeItem('userKey')
@@ -161,10 +172,16 @@ const StoreProvider = ({ children }: { children: JSX.Element[] }) => {
             store: c.blockservice,
           })
           console.log('logging in from storage')
+
+          const username = (await tree.resolveData(usernameKey)).value
+
           dispatch({
             type: AppActions.login,
             userTree: tree,
+            did: did,
+            username: username
           } as IAppLogin)
+                    
           dispatch({
             type: AppActions.stopLoading,
           } as IAppStopLoading)
@@ -189,6 +206,7 @@ const StoreProvider = ({ children }: { children: JSX.Element[] }) => {
           } as IAppSetDid)
         })
       }
+
       if (state.userTree && state.userDid && state.userTree.key && state.userTree.key.privateKey) {
         sessionStorage.setItem('userDid', state.userDid)
         sessionStorage.setItem('userKey', Buffer.from(state.userTree.key.privateKey).toString('base64'))
