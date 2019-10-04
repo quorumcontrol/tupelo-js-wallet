@@ -4,7 +4,7 @@ import { Modal, Form, Button, Media,Content, Loader } from 'react-bulma-componen
 import { ChainTree, receiveTokenTransactionFromPayload, EcdsaKey, sendTokenTransaction, setOwnershipTransaction } from 'tupelo-wasm-sdk'
 import { getAppCommunity } from '../util/appcommunity'
 import { getUserTree } from '../util/usernames'
-import { StoreContext, IAppMessage } from '../state/store'
+import { StoreContext, IAppMessage, AppActions } from '../state/store'
 
 //TODO: this would be nice with error handling, etc
 
@@ -50,10 +50,10 @@ export function SendTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
             }
 
             console.log("ephemeralDID: ", ephemeralDid)
-            // const userAuthResp = await userTree.resolve("tree/_tupelo/authentications")
-            // const destAuthResp = await destTree.resolve("tree/_tupelo/authentications")
+            const userAuthResp = await userTree.resolve("tree/_tupelo/authentications")
+            const destAuthResp = await destTree.resolve("tree/_tupelo/authentications")
 
-            const sendId = userDid + "->" + destDid
+            const sendId = userDid + "->" + destDid + Math.random().toString()
 
             console.log("sending token to ephemeral")
             const sendTx = sendTokenTransaction(
@@ -70,7 +70,7 @@ export function SendTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
 
             console.log("receiveTx: ", receiveTx.toObject())
             await c.playTransactions(ephemeralTree, [
-                // setOwnershipTransaction(userAuthResp.value.concat(destAuthResp.value)),
+                setOwnershipTransaction(userAuthResp.value.concat(destAuthResp.value)),
                 receiveTx,
             ])
             console.log('done')
@@ -78,6 +78,7 @@ export function SendTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
             setState({...state, loading: false, tokenName: '', destination: '', ammount: ''})
             onClose()
             globalDispatch({
+                type: AppActions.message,
                 message: {
                     title: "Sent!",
                     body: "Tell " + state.destination + " to use this: " + ephemeralDid, 

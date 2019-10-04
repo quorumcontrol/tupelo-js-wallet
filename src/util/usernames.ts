@@ -19,10 +19,15 @@ export const didFromUserName = async (userName: string) => {
     return Tupelo.ecdsaPubkeyToDid(userKey.publicKey)
 }
 
-export const getUserTree = async(userName: string) => {
+export const getUserTree = async (userName: string) => {
     const c = await getAppCommunity()
     const userDid = await didFromUserName(userName)
-    const userTip = await c.getTip(userDid)
+    let userTip
+    try {
+        userTip = await c.getTip(userDid)
+    } catch(e) {
+        throw e
+    }
 
     return new ChainTree({
         store: c.blockservice,

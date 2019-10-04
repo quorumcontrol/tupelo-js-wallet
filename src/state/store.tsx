@@ -36,6 +36,7 @@ export enum AppActions {
   setDID,
   removeMessage,
   message,
+  logout,
 }
 
 export interface IAppAction {
@@ -70,6 +71,10 @@ interface IAppSetDid extends IAppAction {
   did: string
 }
 
+export interface IAppLogout extends IAppAction {
+  type: AppActions.logout
+}
+
 function reducer(state: IAppState, action: IAppAction) {
   let act
   switch (action.type) {
@@ -82,6 +87,10 @@ function reducer(state: IAppState, action: IAppAction) {
       return { ...state, userTree: act.userTree }
     case AppActions.setDID:
       return { ...state, userDid: (action as IAppSetDid).did }
+    case AppActions.logout:
+      sessionStorage.removeItem('userDid')
+      sessionStorage.removeItem('userKey')
+      return {...initialState, loading: 0} 
     case AppActions.message:
       const msg = (action as IAppMessage).message
       msg.id = (new Date()).toString() + "-" + msg.title + Math.random().toString()
@@ -125,9 +134,22 @@ const StoreProvider = ({ children }: { children: JSX.Element[] }) => {
             throw new Error("no did or no userKey")
           }
           const c = await getAppCommunity()
-          const tipP = c.getTip(did)
-          const keyP = EcdsaKey.fromBytes(Buffer.from(userKey, 'base64'))
-          const [tip, key] = await Promise.all([tipP, keyP])
+          let tip
+          try {
+            tip = await c.getTip(did)
+          } catch(e) {
+            // in this case, the user had a set userDId, key, but
+            // the network didn't know about them, so let's just
+            // unset and let them login again
+            if (e === 'not found') {
+              dispatch({
+                type: AppActions.logout,
+              } as IAppLogout)
+              return
+            }
+            throw e
+          }
+          const key = await EcdsaKey.fromBytes(Buffer.from(userKey, 'base64'))
 
           const tree = new ChainTree({
             key: key,

@@ -10,8 +10,8 @@ export function UserMessageList() {
     })
 
     return (
-        <div id="messages" style={{ position: 'absolute', right: '10px' }}>
-            <ol style={{ width: '300px', listStyleType: 'none' }}>
+        <div id="messages" style={{ position: 'absolute', right: '10px', zIndex:1}}>
+            <ol style={{ width: '400px', listStyleType: 'none' }}>
                 {lis}
             </ol>
         </div>

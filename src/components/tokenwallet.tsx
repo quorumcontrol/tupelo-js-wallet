@@ -6,6 +6,7 @@ import { EstablishTokenDialog } from './establishtoken';
 import { SendTokenDialog } from './sendtoken';
 import { ChainTree } from 'tupelo-wasm-sdk'
 import { MintTokenDialog } from './minttoken';
+import { ReceiveTokenDialog } from './receivetoken';
 
 const tokenPath = "/tree/_tupelo/tokens";
 
@@ -18,6 +19,7 @@ export function TokenWallet(props: RouteProps) {
         showEstablishModal: false,
         showMintModal: false,
         showSendModal: false,
+        showReceiveModal: false,
         modifiedAt: 0,
     })
 
@@ -79,6 +81,7 @@ export function TokenWallet(props: RouteProps) {
             <EstablishTokenDialog userTree={globalState.userTree} show={state.showEstablishModal} onClose={() => { handleCloseModal(); setState({ ...state, showEstablishModal: false }) }} />
             <MintTokenDialog tokens={state.tokens} userTree={globalState.userTree} show={state.showMintModal} onClose={() => { handleCloseModal(); setState({ ...state, showMintModal: false }) }} />
             <SendTokenDialog tokens={state.tokens} userTree={globalState.userTree} show={state.showSendModal} onClose={() => { handleCloseModal(); setState({ ...state, showSendModal: false }) }} />
+            <ReceiveTokenDialog userTree={globalState.userTree} show={state.showReceiveModal} onClose={() => { handleCloseModal(); setState({ ...state, showReceiveModal: false }) }} />
             <Level>
                 <Level.Side align="left">
                     <Level.Item>
@@ -89,6 +92,9 @@ export function TokenWallet(props: RouteProps) {
                     </Level.Item>
                     <Level.Item>
                         <Button onClick={() => { setState({ ...state, showSendModal: true }) }}>Send Token</Button>
+                    </Level.Item>
+                    <Level.Item>
+                        <Button onClick={() => { setState({ ...state, showReceiveModal: true }) }}>Receive Token</Button>
                     </Level.Item>
                 </Level.Side>
             </Level>
