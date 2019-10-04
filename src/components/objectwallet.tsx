@@ -41,6 +41,7 @@ function NFTCard({ did, onSend, userTree }: { userTree:ChainTree, did: string, o
                 tip: tip,
             })
             const attrsResp = await tree.resolveData("/_wallet/attributes")
+            console.log(attrsResp.value)
             setState((s) => {
                 return { ...s, loading: false, tree: tree, attrs: (attrsResp.value || {}) }
             })
@@ -114,9 +115,14 @@ function NFTCard({ did, onSend, userTree }: { userTree:ChainTree, did: string, o
 
     return (
         <Card>
+            {state.attrs.image ?
+            <Card.Image src={"data:image/*;base64," + Buffer.from(state.attrs.image).toString('base64')} />
+            :
             <Card.Header>
                 <Card.Header.Title>{state.attrs.title}</Card.Header.Title>
             </Card.Header>
+            }
+           
             <Card.Content>
                 {state.loading ?
                     <Loader />
