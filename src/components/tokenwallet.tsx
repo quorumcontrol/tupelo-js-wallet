@@ -85,12 +85,6 @@ export function TokenWallet(props: RouteProps) {
             <Level>
                 <Level.Side align="left">
                     <Level.Item>
-                        <Button onClick={() => { setState({ ...state, showEstablishModal: true }) }}>Establish Token</Button>
-                    </Level.Item>
-                    <Level.Item>
-                        <Button onClick={() => { setState({ ...state, showMintModal: true }) }}>Mint Token</Button>
-                    </Level.Item>
-                    <Level.Item>
                         <Button onClick={() => { setState({ ...state, showSendModal: true }) }}>Send Token</Button>
                     </Level.Item>
                     <Level.Item>
@@ -110,6 +104,16 @@ export function TokenWallet(props: RouteProps) {
                     {tokenRows}
                 </tbody>
             </Table>
+            <Level>
+                <Level.Side align="left">
+                    <Level.Item>
+                        <Button onClick={() => { setState({ ...state, showEstablishModal: true }) }}>Establish Token</Button>
+                    </Level.Item>
+                    <Level.Item>
+                        <Button onClick={() => { setState({ ...state, showMintModal: true }) }}>Mint Token</Button>
+                    </Level.Item>
+                </Level.Side>
+            </Level>
         </div>
     )
 }

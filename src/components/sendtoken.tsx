@@ -6,7 +6,7 @@ import { getAppCommunity } from '../util/appcommunity'
 import { getUserTree } from '../util/usernames'
 import { StoreContext, IAppMessage, AppActions } from '../state/store'
 
-//TODO: this would be nice with error handling, etc
+const tokenPath = "/tree/_tupelo/tokens";
 
 //TODO(bug): if you let the browser autofill a field it doesn't trigger change and so it doesn't update the state
 // so you end up with null names
@@ -14,19 +14,31 @@ import { StoreContext, IAppMessage, AppActions } from '../state/store'
 export function SendTokenDialog({ show, onClose, userTree, tokens }: { tokens: Object, userTree: ChainTree, show: boolean, onClose: (() => void) }) {
     const [,globalDispatch] = useContext(StoreContext)
     
-    const [state, setState] = useState({
+    const initialState = {
         loading: false,
         tokenName: '',
         destination: '',
-        ammount: '',
-    })
+        amount: '',
+        destinationError: '',
+        amountError: '',
+    }
+
+    const [state, setState] = useState(initialState)
+
+    const isDestinationErrored = ()=> {
+        return state.destinationError !== ''
+    }
+
+    const isAmountErrored = ()=> {
+        return state.amountError !== ''
+    }
 
     const handleChange = (evt: React.ChangeEvent<HTMLInputElement|HTMLSelectElement>) => {
         setState({ ...state, [evt.target.name]: evt.target.value })
     }
 
     const handleSubmit = () => {
-        setState({...state, loading: true})
+        setState({...state, loading: true, destinationError: '', amountError: ''})
         const doAsync = async ()=> {
             console.log("sending: ", state)
             /*
@@ -37,8 +49,30 @@ export function SendTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
                 receiveCoin on new chaintree
             */
             const c = await getAppCommunity()
+
+            const balanceResp = await userTree.resolve(tokenPath + '/' + state.tokenName)
+            const balance = balanceResp.value['balance'] as number
+
+            if (parseInt(state.amount,10) > balance) {
+                setState((s)=> {
+                    return {...s, amountError: "That's too much. You don't have that", loading: false}   
+                })
+                return
+            }
             
-            const [destTree, ephemeralKey] = await Promise.all([getUserTree(state.destination), EcdsaKey.generate()])
+            let destTree
+            try {
+                destTree = await getUserTree(state.destination)
+            } catch(e) {
+                if (e === 'not found') {
+                    setState((s)=> {
+                        return {...s, destinationError: 'User not found', loading: false}   
+                    })
+                    return
+                }
+                throw e
+            }
+            const ephemeralKey = await EcdsaKey.generate()
             const ephemeralTree = await ChainTree.newEmptyTree(c.blockservice, ephemeralKey)
 
             const userDid = await userTree.id()
@@ -59,7 +93,7 @@ export function SendTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
             const sendTx = sendTokenTransaction(
                 sendId,
                 state.tokenName,
-                parseInt(state.ammount, 10),
+                parseInt(state.amount, 10),
                 ephemeralDid,
             )
             console.log("send tx: ", sendTx.toObject())
@@ -75,13 +109,13 @@ export function SendTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
             ])
             console.log('done')
             
-            setState({...state, loading: false, tokenName: '', destination: '', ammount: ''})
+            setState(initialState)
             onClose()
             globalDispatch({
                 type: AppActions.message,
                 message: {
-                    title: "Sent!",
-                    body: "Tell " + state.destination + " to use this: " + ephemeralDid, 
+                    title: "Sent " + state.amount + " token to user: " + state.destination,
+                    body: "Ask " + state.destination + " to use this DID in their receive token: \n" + ephemeralDid, 
                 }
             } as IAppMessage)
         }
@@ -119,14 +153,17 @@ export function SendTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
                         <Form.Field>
                             <Form.Label>Destination</Form.Label>
                             <Form.Control>
-                                <Form.Input value={state.destination} onChange={handleChange} name="destination" placeholder="Where to send" />
+                                <Form.Input color={ isDestinationErrored() ? "danger" : "info" } value={state.destination} onChange={handleChange} name="destination" placeholder="Where to send" />
                             </Form.Control>
+                            {isDestinationErrored() && <Form.Help color="danger">{state.destinationError}</Form.Help>}
+
                         </Form.Field>
                         <Form.Field>
-                            <Form.Label>Ammount</Form.Label>
+                            <Form.Label>Amount</Form.Label>
                             <Form.Control>
-                                <Form.Input type="number" value={state.ammount.toString()} onChange={handleChange} name="ammount" placeholder="Ammount to send" />
+                                <Form.Input color={ isAmountErrored() ? "danger" : "info" } type="number" value={state.amount} onChange={handleChange} name="amount" placeholder="Amount to send" />
                             </Form.Control>
+                            {isAmountErrored() && <Form.Help color="danger">{state.amountError}</Form.Help>}
                         </Form.Field>
                         <Form.Field kind="group">
                             <Button color="primary" onClick={handleSubmit}>Send</Button>

@@ -10,7 +10,7 @@ export function MintTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
     const [state, setState] = useState({
         loading: false,
         tokenName: '',
-        ammount: 0,
+        amount: 0,
     })
 
     const handleChange = (evt: React.ChangeEvent<HTMLInputElement|HTMLSelectElement>) => {
@@ -21,8 +21,8 @@ export function MintTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
         setState({...state, loading: true})
         const doAsync = async ()=> {
             const c = await getAppCommunity()
-            await c.playTransactions(userTree, [mintTokenTransaction(state.tokenName, state.ammount)])
-            setState({...state, loading: false, tokenName: '', ammount: 0})
+            await c.playTransactions(userTree, [mintTokenTransaction(state.tokenName, state.amount)])
+            setState({...state, loading: false, tokenName: '', amount: 0})
             onClose()
         }
         doAsync()
@@ -57,9 +57,9 @@ export function MintTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
                             </Form.Control>
                         </Form.Field>
                         <Form.Field>
-                            <Form.Label>Ammount</Form.Label>
+                            <Form.Label>Amount</Form.Label>
                             <Form.Control>
-                                <Form.Input type="number" value={state.ammount.toString()} onChange={handleChange} name="ammount" placeholder="Ammount to Mint" />
+                                <Form.Input type="number" value={state.amount.toString()} onChange={handleChange} name="amount" placeholder="Amount to Mint" />
                             </Form.Control>
                         </Form.Field>
                         <Form.Field kind="group">

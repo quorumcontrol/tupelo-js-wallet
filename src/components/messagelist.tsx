@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Message, Button } from 'react-bulma-components';
+import { Message, Button, Container } from 'react-bulma-components';
 import { StoreContext, IAppMessage, AppActions, IAppRemoveMessage } from '../state/store';
 
 export function UserMessageList() {
@@ -10,11 +10,11 @@ export function UserMessageList() {
     })
 
     return (
-        <div id="messages" style={{ position: 'absolute', right: '10px', zIndex:1}}>
-            <ol style={{ width: '400px', listStyleType: 'none' }}>
+        <Container>
+            <ol style={{ listStyleType: 'none' }}>
                 {lis}
             </ol>
-        </div>
+        </Container>
     )
 }
 
@@ -32,7 +32,7 @@ const MessageElement = ({ message }: { message: IAppMessage}) => {
                     {message.title}
                 <Button remove onClick={()=> { globalDispatch({type: AppActions.removeMessage, id: message.id} as IAppRemoveMessage) }}/>
                 </Message.Header>
-                <Message.Body>
+                <Message.Body style={{whiteSpace: 'pre'}}>
                     {message.body}
               </Message.Body>
             </Message>
