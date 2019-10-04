@@ -1,27 +1,36 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Box, Button, Form, Media, Card, Heading, Content, Loader, Columns } from 'react-bulma-components';
-import { StoreContext } from '../state/store';
+import { StoreContext, IAppMessage, AppActions } from '../state/store';
 import { ChainTree, Tupelo, setOwnershipTransaction, setDataTransaction } from 'tupelo-wasm-sdk';
 import { getAppCommunity } from '../util/appcommunity';
 import { INFTProperties } from './creator';
 import { getUserTree } from '../util/usernames';
 
+type DidList = { [index: string]: number }
+
 interface IOnSendEvent {
     did: string
     tree: ChainTree
     destination: string
+    dids: DidList
 }
 
 
-function NFTCard({ did, onSend }: { did: string, onSend: Function }) {
+function NFTCard({ did, onSend, userTree }: { userTree:ChainTree, did: string, onSend: Function }) {
+    const [,globalDispatch] = useContext(StoreContext)
+    
     const [state, setState] = useState({
         loading: true,
         tree: undefined as ChainTree | undefined,
         attrs: {} as INFTProperties,
         sending: false,
         destination: "",
+        destinationError: '',
     })
 
+    const isDestErrored = ()=> {
+        return state.destinationError !== ''
+    }
 
     useEffect(() => {
         const loadNFT = async () => {
@@ -45,12 +54,62 @@ function NFTCard({ did, onSend }: { did: string, onSend: Function }) {
     }
 
     const handleSend = () => {
-        setState({ ...state, loading: true, sending: false })
-        onSend({
-            did: did,
-            tree: state.tree,
-            destination: state.destination,
-        } as IOnSendEvent)
+        setState({ ...state, loading: true, sending: false, destinationError: '' })
+
+        const doAsync = async ()=> {
+            const c = await getAppCommunity()
+
+            if (state.tree === undefined) {
+                throw new Error("card must have a tree to send")
+            }
+
+            let destTree
+            try {
+                destTree = await getUserTree(state.destination)
+            } catch(e) {
+                if (e === 'not found') {
+                    setState((s)=> {
+                        return {...s, loading: false, sending: true, destinationError: 'Unknown username'}
+                    })
+                    return
+                }
+                throw e
+            }
+            const authResp = await destTree.resolve("tree/_tupelo/authentications")
+    
+            state.tree.key = userTree.key
+            console.log("reassigning ", did, " to: ", state.destination)
+            // set the auth of this NFT to the same as the receiver
+            await c.playTransactions(state.tree, [
+                setOwnershipTransaction(authResp.value)
+            ])
+    
+            console.log('remove did from nfts')
+            // remove this NFT from my bag of hodling
+            const dids = (await userTree.resolveData("/_wallet/nfts")).value
+
+            const { [did]: value, ...didsWithoutSent } = dids
+            await c.playTransactions(userTree, [
+                setDataTransaction("/_wallet/nfts", didsWithoutSent)
+            ])
+            setState((s)=>{
+                return {...s, sending: false, loading: false, destinationError: ''}
+            })
+            globalDispatch({
+                type: AppActions.message,
+                message: {
+                    title: "Sent an NFT to user: " + state.destination,
+                    body: "Ask " + state.destination + " to use this DID in their Add: \n" + did, 
+                }
+            } as IAppMessage)
+            onSend({
+                did: did,
+                tree: state.tree,
+                destination: state.destination,
+                dids: didsWithoutSent,
+            } as IOnSendEvent)
+        }
+        doAsync()
     }
 
     return (
@@ -75,7 +134,7 @@ function NFTCard({ did, onSend }: { did: string, onSend: Function }) {
                         </Media>
                         <Content>
                             {state.attrs.content}
-                            <p>{did}</p>
+                            <pre style={{marginTop:'1em'}}>{did}</pre>
                         </Content>
                     </div>}
             </Card.Content>
@@ -89,8 +148,9 @@ function NFTCard({ did, onSend }: { did: string, onSend: Function }) {
                         <Form.Field>
                             <Form.Label>Destination Name</Form.Label>
                             <Form.Control>
-                                <Form.Input value={state.destination} onChange={handleChange} name="nftdestination" placeholder="Destination" />
+                                <Form.Input color={isDestErrored() ? 'danger' : 'info'} value={state.destination} onChange={handleChange} name="nftdestination" placeholder="Destination" />
                             </Form.Control>
+                            {isDestErrored() && <Form.Help color="danger">{state.destinationError}</Form.Help>}
                         </Form.Field>
                         <Form.Field kind="group">
                             <Button color="primary" onClick={handleSend}>Send</Button>
@@ -107,7 +167,8 @@ export function ObjectWallet() {
 
     const [globalState] = useContext(StoreContext)
     const [state, setState] = useState({
-        dids: {} as { [index: string]: number },
+        loading: true,
+        dids: {} as DidList,
     })
 
     if (globalState.userTree === undefined) {
@@ -115,30 +176,8 @@ export function ObjectWallet() {
     }
 
     const onSend = async (evt: IOnSendEvent) => {
-        const userTree = globalState.userTree
-        if (userTree === undefined || userTree.key === undefined) {
-            throw new Error("can only send when a valid user")
-        }
-        const c = await getAppCommunity()
-
-        const destTree = await getUserTree(evt.destination)
-        const authResp = await destTree.resolve("tree/_tupelo/authentications")
-
-        evt.tree.key = userTree.key
-        console.log("reassigning ", evt.did, " to: ", evt.destination)
-        // set the auth of this NFT to the same as the receiver
-        await c.playTransactions(evt.tree, [
-            setOwnershipTransaction(authResp.value)
-        ])
-
-        console.log('remove did from nfts')
-        // remove this NFT from my bag of hodling
-        const { [evt.did]: value, ...withoutSent } = state.dids
-        await c.playTransactions(userTree, [
-            setDataTransaction("/_wallet/nfts", withoutSent)
-        ])
         setState((s) => {
-            return { ...s, dids: withoutSent }
+            return { ...s, dids: evt.dids }
         })
     }
 
@@ -149,7 +188,7 @@ export function ObjectWallet() {
             }
             const tResp = await globalState.userTree.resolveData("/_wallet/nfts")
             setState((s) => {
-                return { ...s, dids: (tResp.value || {}) }
+                return { ...s, loading: false, dids: (tResp.value || {}) }
             })
         }
 
@@ -159,9 +198,12 @@ export function ObjectWallet() {
     }, [globalState.userTree])
 
     const cards = Object.keys(state.dids).map((did) => {
+        if (globalState.userTree === undefined) {
+            throw new Error("must hae a user tree to list dids")
+        }
         return (
             <Columns.Column key={did} size="half">
-                <NFTCard onSend={onSend} did={did} />
+                <NFTCard userTree={globalState.userTree} onSend={onSend} did={did} />
             </Columns.Column>
         )
     })
@@ -176,6 +218,7 @@ export function ObjectWallet() {
         <div>
             <Heading>Object wallet</Heading>
             <Columns>
+                {state.loading && <Loader />}
                 {cards}
             </Columns>
             <AddObjectForm onAdd={handleAdd} userTree={globalState.userTree} />
@@ -220,21 +263,30 @@ const AddObjectForm = ({ userTree, onAdd }: { userTree: ChainTree, onAdd:Functio
         doAsync()
     }
 
+    const AddForm = ()=> {
+        if (state.addLoading) {
+            return <Loader/>
+        }
+        return (
+        <Box>
+        <Form.Field>
+            <Form.Label>Add</Form.Label>
+            <Form.Control>
+                <Form.Input value={state.addDid} onChange={(evt) => { setState({ ...state, addDid: evt.target.value }) }} name="additionalDid" placeholder="DID" />
+            </Form.Control>
+        </Form.Field>
+        <Form.Field kind="group">
+            <Button onClick={handleAdd} color="primary">Add</Button>
+            <Button text onClick={() => { setState((s) => { return { ...s, addOpen: false, addDid: '' } }) }}>Cancel</Button>
+        </Form.Field>
+        </Box>
+        )
+    }
+
     return (
         <div>
             {state.addOpen ?
-                <Box>
-                    <Form.Field>
-                        <Form.Label>Add</Form.Label>
-                        <Form.Control>
-                            <Form.Input value={state.addDid} onChange={(evt) => { setState({ ...state, addDid: evt.target.value }) }} name="additionalDid" placeholder="DID" />
-                        </Form.Control>
-                    </Form.Field>
-                    <Form.Field kind="group">
-                        <Button onClick={handleAdd} color="primary">Add</Button>
-                        <Button text onClick={() => { setState((s) => { return { ...s, addOpen: false, addDid: '' } }) }}>Cancel</Button>
-                    </Form.Field>
-                </Box>
+                <AddForm/>
                 :
                 <Button onClick={() => { setState((s) => { return { ...s, addOpen: true } }) }}>Add</Button>
             }
