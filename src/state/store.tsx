@@ -127,6 +127,10 @@ const StoreProvider = ({ children }: { children: JSX.Element[] }) => {
       if (firstRun) {
         setFirstRun(false)
 
+        // go ahead and just get a community going
+        // it will make login/register faster
+        getAppCommunity()
+
         const did = sessionStorage.getItem('userDid')
         const userKey = sessionStorage.getItem('userKey')
         const doAsyncSet = async () => {
