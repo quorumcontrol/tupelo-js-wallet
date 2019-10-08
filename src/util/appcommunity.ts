@@ -58,7 +58,16 @@ export function waitForCommunityTip(did:string, tip:CID) {
             log("waitForCommunityTip: awaitng nextUpdate")
             await c.nextUpdate()
             log("waitForCommunityTip: getTip")
-            const cTip = await c.getTip(did)
+            let cTip:CID
+            try {
+                cTip = await c.getTip(did)
+            } catch(e) {
+                if (e === 'not found') {
+                    setTimeout(doCheck, 200)
+                    return
+                }
+                throw new Error(e)
+            }
             if (tip.equals(cTip)) {
                 log("tips matched", did) 
                 resolve()
