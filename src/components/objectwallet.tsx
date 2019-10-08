@@ -206,7 +206,7 @@ export function ObjectWallet() {
             throw new Error("must hae a user tree to list dids")
         }
         return (
-            <Columns.Column key={did} size="half">
+            <Columns.Column key={did} size={3}>
                 <NFTCard userTree={globalState.userTree} onSend={onSend} did={did} />
             </Columns.Column>
         )
