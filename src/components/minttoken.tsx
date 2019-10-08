@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 import { Modal, Form, Button, Media,Content, Loader } from 'react-bulma-components'
 import { ChainTree, mintTokenTransaction } from 'tupelo-wasm-sdk'
-import { getAppCommunity } from '../util/appcommunity'
+import { txsWithCommunityWait } from '../util/appcommunity'
 
 //TODO: this would be nice with error handling to show you you're trying to mint more than the allowed
 
@@ -20,8 +20,7 @@ export function MintTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
     const handleSubmit = () => {
         setState({...state, loading: true})
         const doAsync = async ()=> {
-            const c = await getAppCommunity()
-            await c.playTransactions(userTree, [mintTokenTransaction(state.tokenName, state.amount)])
+            await txsWithCommunityWait(userTree, [mintTokenTransaction(state.tokenName, state.amount)])
             setState({...state, loading: false, tokenName: '', amount: 0})
             onClose()
         }

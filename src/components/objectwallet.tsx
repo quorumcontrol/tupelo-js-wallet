@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Box, Button, Form, Media, Card, Heading, Content, Loader, Columns } from 'react-bulma-components';
 import { StoreContext, IAppMessage, AppActions } from '../state/store';
 import { ChainTree, Tupelo, setOwnershipTransaction, setDataTransaction } from 'tupelo-wasm-sdk';
-import { getAppCommunity } from '../util/appcommunity';
+import { getAppCommunity, txsWithCommunityWait } from '../util/appcommunity';
 import { INFTProperties } from './creator';
 import { getUserTree } from '../util/usernames';
 
@@ -58,8 +58,6 @@ function NFTCard({ did, onSend, userTree }: { userTree:ChainTree, did: string, o
         setState({ ...state, loading: true, sending: false, destinationError: '' })
 
         const doAsync = async ()=> {
-            const c = await getAppCommunity()
-
             if (state.tree === undefined) {
                 throw new Error("card must have a tree to send")
             }
@@ -81,7 +79,7 @@ function NFTCard({ did, onSend, userTree }: { userTree:ChainTree, did: string, o
             state.tree.key = userTree.key
             console.log("reassigning ", did, " to: ", state.destination)
             // set the auth of this NFT to the same as the receiver
-            await c.playTransactions(state.tree, [
+            await txsWithCommunityWait(state.tree, [
                 setOwnershipTransaction(authResp.value)
             ])
     
@@ -90,7 +88,7 @@ function NFTCard({ did, onSend, userTree }: { userTree:ChainTree, did: string, o
             const dids = (await userTree.resolveData("/_wallet/nfts")).value
 
             const { [did]: value, ...didsWithoutSent } = dids
-            await c.playTransactions(userTree, [
+            await txsWithCommunityWait(userTree, [
                 setDataTransaction("/_wallet/nfts", didsWithoutSent)
             ])
             setState((s)=>{
@@ -258,7 +256,7 @@ const AddObjectForm = ({ userTree, onAdd }: { userTree: ChainTree, onAdd:Functio
             let auths: string[] = resolveResp.value
             if (auths.includes(userAddr)) {
                 // this tree does belong to the user
-                await c.playTransactions(userTree, [
+                await txsWithCommunityWait(userTree, [
                     setDataTransaction("/_wallet/nfts/" + did, Date.now())
                 ])
                 onAdd(did)

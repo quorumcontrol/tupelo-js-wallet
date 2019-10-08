@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Heading, Form, Box,Button, Loader } from 'react-bulma-components';
 import { Tupelo,ChainTree, EcdsaKey, setDataTransaction, setOwnershipTransaction } from 'tupelo-wasm-sdk';
-import { getAppCommunity } from '../util/appcommunity';
+import { getAppCommunity, txsWithCommunityWait } from '../util/appcommunity';
 
 export interface INFTProperties {
     title: string
@@ -100,12 +100,13 @@ export function ObjectCreator({userTree}:{userTree:ChainTree}) {
         console.log("creating attrs: ", attrs)
 
         // now we set the data and CHOWN to the user
-        const nftP = c.playTransactions(tree, [
+        const nftP = txsWithCommunityWait(tree, [
             setDataTransaction("/_wallet/attributes", attrs),
             setOwnershipTransaction([userAddr]),
         ])
+        
         // and we keep a record of the NFT in the user tree
-        const userP = c.playTransactions(userTree, [
+        const userP = txsWithCommunityWait(userTree, [
             setDataTransaction("/_wallet/nfts/" + did, Date.now())
         ])
         await Promise.all([nftP, userP])

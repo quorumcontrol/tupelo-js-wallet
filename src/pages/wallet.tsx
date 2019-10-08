@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { StoreContext } from '../state/store';
 import { Redirect, RouteProps } from 'react-router';
-import { Tabs, Container, Heading, Footer, Content } from 'react-bulma-components';
+import { Tabs, Container, Heading } from 'react-bulma-components';
 import { TokenWallet } from '../components/tokenwallet';
 import { ObjectCreator } from '../components/creator';
 import { ObjectWallet } from '../components/objectwallet';

@@ -1,6 +1,8 @@
 
-import { Community } from 'tupelo-wasm-sdk';
+import { Community, ChainTree } from 'tupelo-wasm-sdk';
+import CID from 'cids';
 import debug from 'debug';
+import { Transaction } from 'tupelo-messages';
 
 const log = debug("appcommunity")
 
@@ -25,4 +27,52 @@ export function getAppCommunity(): Promise<Community> {
         resolve(c)
     })
     return _appPromise
+}
+
+export async function txsWithCommunityWait(tree:ChainTree, txs:Transaction[]) {
+    const c = await getAppCommunity()
+    const res = await c.playTransactions(tree, txs)
+    const sig = res.getSignature()
+    if (sig === undefined) {
+        throw new Error("undefined sig from response")
+    }
+    const respTip = new CID(Buffer.from(sig.getNewTip_asU8()))
+
+    const treeId = await tree.id()
+    if (treeId === null) {
+        throw new Error("error getting ID, was null")
+    }
+
+    await waitForCommunityTip(treeId, respTip)
+    return res
+}
+
+
+// for some reason can't use CID as a type here easily
+export function waitForCommunityTip(did:string, tip:CID) {
+    return new Promise((resolve,reject)=> {   
+        log("waiting for community on ", did) 
+        let count = 0
+        const doCheck = async ()=> {
+            const c = await getAppCommunity()
+            log("waitForCommunityTip: awaitng nextUpdate")
+            await c.nextUpdate()
+            log("waitForCommunityTip: getTip")
+            const cTip = await c.getTip(did)
+            if (tip.equals(cTip)) {
+                log("tips matched", did) 
+                resolve()
+                return
+            }
+            if (count > 60) {
+                log("waitForCommunityTip: rejecting timeout ", did)
+                reject(new Error("timeout error, over 30s"))
+                return
+            }
+            count++
+            log('tips did not match, retrying', did)
+            setTimeout(doCheck, 500)
+        }
+        doCheck()
+    })
 }

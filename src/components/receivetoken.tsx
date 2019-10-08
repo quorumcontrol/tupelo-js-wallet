@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 import { Modal, Form, Button, Media, Content, Loader } from 'react-bulma-components'
 import { ChainTree, receiveTokenTransactionFromPayload, sendTokenTransaction } from 'tupelo-wasm-sdk'
-import { getAppCommunity } from '../util/appcommunity'
+import { getAppCommunity, txsWithCommunityWait } from '../util/appcommunity'
 import { SimpleSyncher } from '../util/syncher'
 import { TokenPayload } from 'tupelo-messages'
 
@@ -55,7 +55,7 @@ export function ReceiveTokenDialog({ show, onClose, userTree }: { userTree: Chai
             const rxTransactions = sendPayloads.map((payload) => {
                 return receiveTokenTransactionFromPayload(payload)
             })
-            await c.playTransactions(userTree, rxTransactions)
+            await txsWithCommunityWait(userTree, rxTransactions)
             setState((s) => {
                 return { ...s, loading: false, did: '' }
             })

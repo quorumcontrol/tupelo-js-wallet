@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react'
 
 import { Modal, Form, Button, Media,Content, Loader } from 'react-bulma-components'
 import { ChainTree, receiveTokenTransactionFromPayload, EcdsaKey, sendTokenTransaction, setOwnershipTransaction } from 'tupelo-wasm-sdk'
-import { getAppCommunity } from '../util/appcommunity'
+import { getAppCommunity, txsWithCommunityWait } from '../util/appcommunity'
 import { getUserTree } from '../util/usernames'
 import { StoreContext, IAppMessage, AppActions } from '../state/store'
 
@@ -103,7 +103,7 @@ export function SendTokenDialog({ show, onClose, userTree, tokens }: { tokens: O
             let receiveTx = receiveTokenTransactionFromPayload(payload)
 
             console.log("receiveTx: ", receiveTx.toObject())
-            await c.playTransactions(ephemeralTree, [
+            await txsWithCommunityWait(ephemeralTree, [
                 setOwnershipTransaction(userAuthResp.value.concat(destAuthResp.value)),
                 receiveTx,
             ])

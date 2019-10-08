@@ -1,6 +1,6 @@
 import React, { useReducer, useState, useContext } from 'react';
 import { Columns, Heading, Form, Icon, Loader, Button } from 'react-bulma-components';
-import { getAppCommunity } from '../util/appcommunity';
+import { getAppCommunity, txsWithCommunityWait } from '../util/appcommunity';
 import { EcdsaKey, ChainTree, Tupelo, setOwnershipTransaction, setDataTransaction } from 'tupelo-wasm-sdk';
 import { RouteProps, Redirect } from 'react-router';
 import {StoreContext, AppActions, IAppLogin} from '../state/store'
@@ -220,7 +220,8 @@ function RegisterBottom({ state, dispatch, onLogin }: { state: ILoginState, disp
             const community = await getAppCommunity()
             const tree = await ChainTree.newEmptyTree(community.blockservice, insecureKey)
     
-            await community.playTransactions(tree, [
+            console.log("playing transactions")
+            await txsWithCommunityWait(tree, [
                 // Set the ownership of the chaintree to our secure key (thus owning the username)
                 setOwnershipTransaction([secureKeyAddress]),
                 // Cache the username inside of the chaintree for easier access later

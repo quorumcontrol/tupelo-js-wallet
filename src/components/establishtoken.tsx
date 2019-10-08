@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 import { Modal, Form, Button, Media,Content, Loader } from 'react-bulma-components'
 import { ChainTree, establishTokenTransaction } from 'tupelo-wasm-sdk'
-import { getAppCommunity } from '../util/appcommunity'
+import { txsWithCommunityWait } from '../util/appcommunity'
 
 export function EstablishTokenDialog({ show, onClose, userTree }: { userTree: ChainTree, show: boolean, onClose: (() => void) }) {
     const [state, setState] = useState({
@@ -18,8 +18,7 @@ export function EstablishTokenDialog({ show, onClose, userTree }: { userTree: Ch
     const handleSubmit = () => {
         setState({...state, loading: true})
         const doAsync = async ()=> {
-            const c = await getAppCommunity()
-            await c.playTransactions(userTree, [establishTokenTransaction(state.tokenName, state.maximum)])
+            await txsWithCommunityWait(userTree, [establishTokenTransaction(state.tokenName, state.maximum)])
             setState({...state, loading: false, tokenName: '', maximum: 0})
             onClose()
         }
