@@ -129,8 +129,6 @@ export function ObjectCreator({userTree}:{userTree:ChainTree}) {
 
     return (
         <div>
-            <Heading>Object Creator</Heading>
-            <p>This lets you create an NFT!</p>
             {loading ?
             <Loader/> 
         :

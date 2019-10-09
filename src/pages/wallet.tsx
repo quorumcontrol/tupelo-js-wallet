@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { StoreContext } from '../state/store';
 import { Redirect, RouteProps } from 'react-router';
-import { Tabs, Container, Heading } from 'react-bulma-components';
+import { Tabs, Container } from 'react-bulma-components';
 import { TokenWallet } from '../components/tokenwallet';
 import { ObjectCreator } from '../components/creator';
 import { ObjectWallet } from '../components/objectwallet';
@@ -52,14 +52,12 @@ export function Wallet(props: RouteProps) {
 
     return (
         <Container>
-            <Heading>Wallet of {globalState.username}</Heading>
-            <Tabs>
+            <Tabs type="boxed">
                 <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.objects}>Objects</Tabs.Tab>
                 <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.tokens}>Tokens</Tabs.Tab>
                 <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.creator}>Creator</Tabs.Tab>
             </Tabs>
             {pageContent(state.currentTab)}
-            <p style={{marginTop: '5em'}}>wallet did: {globalState.userDid}</p>
         </Container>
     )
 }

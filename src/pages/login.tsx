@@ -273,14 +273,14 @@ export function LoginForm(props:RouteProps) {
 
     return (
         <div>
-            <Columns className="is-desktop is-centered">
-                <Columns.Column size={"half"} className="is-centered">
+            <Columns className="is-desktop">
+                <Columns.Column size={"half"}>
                     <Heading className="animated flipInX fast">Hello.</Heading>
-                    <p>Find or create your wallet.</p>
+                    <Heading subtitle>Find or create your wallet.</Heading>
                 </Columns.Column>
             </Columns>
 
-            <Columns className="is-desktop is-centered">
+            <Columns className="is-desktop">
                 <Columns.Column size={"half"}>
                     <UsernameField state={state} onChange={handleUsernameChange} />
                     {state.loading && state.username && 

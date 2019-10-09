@@ -220,7 +220,6 @@ export function ObjectWallet() {
 
     return (
         <div>
-            <Heading>Object wallet</Heading>
             <Columns>
                 {state.loading && <Loader />}
                 {cards}

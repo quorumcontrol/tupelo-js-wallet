@@ -171,9 +171,9 @@ const StoreProvider = ({ children }: { children: JSX.Element[] }) => {
             tip: tip,
             store: c.blockservice,
           })
-          console.log('logging in from storage')
 
           const username = (await tree.resolveData(usernameKey)).value
+          console.log('logging in from storage: ', username, ' did: ', did)
 
           dispatch({
             type: AppActions.login,
