@@ -46,7 +46,7 @@ const NavBar = () => {
   return (
     <Navbar transparent={false}>
       <Navbar.Brand>
-        <img src={require("./logo.svg")} />
+        <img src={require("./logo.svg")} alt="Tupelo"/>
       </Navbar.Brand>
       <Navbar.Container position="end">
         {globalState && globalState.username && <p>Wallet of {globalState.username}</p>}

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Heading, Form, Box,Button, Loader } from 'react-bulma-components';
+import { Form, Box,Button, Loader } from 'react-bulma-components';
 import { Tupelo,ChainTree, EcdsaKey, setDataTransaction, setOwnershipTransaction } from 'tupelo-wasm-sdk';
 import { getAppCommunity, txsWithCommunityWait } from '../util/appcommunity';
 
