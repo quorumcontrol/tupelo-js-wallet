@@ -1,0 +1,29 @@
+name: Deploy to IPFS
+
+on:
+  push:
+    branches:
+    - master
+    - feature/deploy-to-ipfs
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+
+    - name: build
+      run: |
+        npm install
+        npm run cp:wasm
+        npm run build
+
+    - name: deploy
+      uses: quorumcontrol/ipfs-deploy@feature/github-action
+      with:
+        pinata-api-key: ${{ secrets.PINATA_API_KEY }}
+        pinata-secret-api-key: ${{ secrets.PINATA_SECRET_API_KEY }}
