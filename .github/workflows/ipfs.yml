@@ -28,3 +28,7 @@ jobs:
         deploy-dir: build
         pinata-api-key: ${{ secrets.PINATA_API_KEY }}
         pinata-secret-api-key: ${{ secrets.PINATA_SECRET_API_KEY }}
+        cloudflare-api-email: ${{ secrets.CLOUDFLARE_API_EMAIL }}
+        cloudflare-api-key: ${{ secrets.CLOUDFLARE_API_KEY }}
+        cloudflare-zone: tupelo.me
+        cloudflare-record: _dnslink.tupelo.me
