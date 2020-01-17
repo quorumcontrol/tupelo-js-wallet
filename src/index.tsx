@@ -4,6 +4,11 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
+const loc = window.location;
+if (loc.protocol !== 'https:') {
+    window.location.href = loc.href.replace('http://', 'https://');
+}
+
 ReactDOM.render(<App />, document.getElementById('root'));
 
 // If you want your app to work offline and load faster, you can change

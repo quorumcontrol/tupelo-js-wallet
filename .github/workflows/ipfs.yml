@@ -1,0 +1,32 @@
+name: Deploy to IPFS
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+
+    - name: build
+      run: |
+        npm install
+        npm run cp:wasm
+        npm run build
+
+    - name: deploy
+      uses: quorumcontrol/ipfs-deploy-github-action@v1
+      with:
+        deploy-dir: build
+        pinata-api-key: ${{ secrets.PINATA_API_KEY }}
+        pinata-secret-api-key: ${{ secrets.PINATA_SECRET_API_KEY }}
+        cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        cloudflare-zone: tupelo.me
+        cloudflare-record: _dnslink.tupelo.me
