@@ -4,8 +4,9 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
-if (window.location.protocol !== 'https:') {
-    location.href = location.href.replace('http://', 'https://');
+const loc = window.location;
+if (loc.protocol !== 'https:') {
+    window.location.href = loc.href.replace('http://', 'https://');
 }
 
 ReactDOM.render(<App />, document.getElementById('root'));
