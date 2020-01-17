@@ -4,7 +4,6 @@ on:
   push:
     branches:
     - master
-    - feature/deploy-to-ipfs
 
 jobs:
   build-deploy:
@@ -23,7 +22,7 @@ jobs:
         npm run build
 
     - name: deploy
-      uses: quorumcontrol/ipfs-deploy-github-action@master
+      uses: quorumcontrol/ipfs-deploy-github-action@v1
       with:
         deploy-dir: build
         pinata-api-key: ${{ secrets.PINATA_API_KEY }}
