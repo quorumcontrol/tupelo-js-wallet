@@ -15,7 +15,6 @@ interface IOnSendEvent {
     dids: DidList
 }
 
-
 function NFTCard({ did, onSend, userTree }: { userTree:ChainTree, did: string, onSend: Function }) {
     const [,globalDispatch] = useContext(StoreContext)
     
