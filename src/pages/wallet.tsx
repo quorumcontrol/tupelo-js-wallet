@@ -53,8 +53,8 @@ export function Wallet(props: RouteProps) {
     return (
         <Container>
             <Tabs type="boxed">
-                <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.objects}>Objects</Tabs.Tab>
                 <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.tokens}>Tokens</Tabs.Tab>
+                <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.objects}>Objects</Tabs.Tab>
                 <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.creator}>Creator</Tabs.Tab>
             </Tabs>
             {pageContent(state.currentTab)}
