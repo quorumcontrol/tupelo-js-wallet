@@ -5,11 +5,13 @@ import { Tabs, Container } from 'react-bulma-components';
 import { TokenWallet } from '../components/tokenwallet';
 import { ObjectCreator } from '../components/creator';
 import { ObjectWallet } from '../components/objectwallet';
+import { TupeloNamingService } from '../components/tns';
 
 enum tabs {
     objects,
     tokens,
     creator,
+    tns,
 }
 type tabStrings = keyof typeof tabs;
 
@@ -36,6 +38,8 @@ export function Wallet(props: RouteProps) {
                 return <ObjectCreator userTree={globalState.userTree} />
             case tabs.objects:
                 return <ObjectWallet />
+            case tabs.tns:
+                return <TupeloNamingService />
             default:
                 throw new Error("unrecognized tab: " + tab)
         }
@@ -56,6 +60,7 @@ export function Wallet(props: RouteProps) {
                 <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.tokens}>Tokens</Tabs.Tab>
                 <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.objects}>Objects</Tabs.Tab>
                 <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.creator}>Creator</Tabs.Tab>
+                <Tabs.Tab onClick={clickHandler} active={state.currentTab === tabs.tns}>TNS</Tabs.Tab>
             </Tabs>
             {pageContent(state.currentTab)}
         </Container>
