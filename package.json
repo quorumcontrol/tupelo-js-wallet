@@ -16,6 +16,7 @@
     "react-dom": "^16.10.0",
     "react-router-dom": "^5.1.1",
     "react-scripts": "3.1.2",
+    "service-worker-gateway": "^0.1.15",
     "tupelo-wasm-sdk": "^0.5.14",
     "typescript": "3.6.3"
   },
@@ -24,7 +25,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "cp:wasm": "cp ./node_modules/tupelo-wasm-sdk/lib/js/go/tupelo.wasm ./public/"
+    "cp:wasm": "cp ./node_modules/tupelo-wasm-sdk/lib/js/go/tupelo.wasm ./public/",
+    "cp:ipfs-sw": "cp ./node_modules/service-worker-gateway/example/public/service-worker-bundle.js ./public/ipfs-sw.js"
   },
   "eslintConfig": {
     "extends": "react-app"
