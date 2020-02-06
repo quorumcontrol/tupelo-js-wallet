@@ -5,7 +5,7 @@ import { ChainTree, setDataTransaction } from 'tupelo-wasm-sdk';
 import { txsWithCommunityWait } from '../util/appcommunity';
 import { StoreContext } from 'state/store';
 
-const tnsPath = "/_tns";
+export const tnsPath = "/_tns";
 
 export function TupeloNamingService(props: RouteProps) {
     const [state, setState] = useState({
