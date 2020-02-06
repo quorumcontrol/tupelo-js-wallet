@@ -6,13 +6,17 @@ import { usernameKey } from "../util/usernames";
 declare const Go: any;
 
 if (window) {
-  const subDirectory = window.location.pathname
-  console.log("subDirectory ", subDirectory)
+  // const subDirectory = window.location.pathname
+  // console.log("subDirectory ", subDirectory)
 
-  if (subDirectory !== '/') {
-    console.log("setting wasmpath to: ", subDirectory + "tupelo.wasm")
-    Go.setWasmPath(subDirectory + "tupelo.wasm");
-  }
+  // if (subDirectory !== '/') {
+  //   console.log("setting wasmpath to: ", subDirectory + "tupelo.wasm")
+  //   Go.setWasmPath(subDirectory + "tupelo.wasm");
+  // }
+
+  // TODO: Do something smarter than hard-coding this.
+  // Manually set to an IPFS path so this will load via the IPFS node service worker
+  Go.setWasmPath('/ipfs/QmRGnAnZrvrj9o3HNPsDVCVHLSz2vD4xeyNL99TPeDhoKg')
 }
 
 interface IAppState {
