@@ -41,7 +41,7 @@ export function TNSRouter() {
     useEffect(() => {
         const getIPFSAddr = async (tree: ChainTree) => {
             // TODO: Add support for nested names & pointers
-            const pointer = await tree.resolveData(tnsPath)
+            const pointer = await tree.resolveData(`${tnsPath}/@`)
 
             const target = `https://ipfs.io${pointer}`
 
