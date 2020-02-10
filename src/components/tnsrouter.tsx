@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Loader } from 'react-bulma-components';
 import { getUserTree } from 'util/usernames';
 import { ChainTree } from 'tupelo-wasm-sdk';
 import { tnsPath } from './tns';
@@ -43,19 +44,32 @@ export function TNSRouter() {
             // TODO: Add support for nested names & pointers
             const pointer = await tree.resolveData(`${tnsPath}/@`)
 
-            const target = `https://ipfs.io${pointer}`
+            const target = `https://ipfs.io${pointer.value}`
 
             setState((s) => {
+                console.log(`setting state.target to ${target}`)
                 return { ...s, target: target }
             })
         }
 
-        if (state.tree !== undefined) {
+        if (state.tree !== undefined && state.target === "") {
             getIPFSAddr(state.tree)
         }
-    }, [state])
+    }, [state.tree])
+
+    useEffect(() => {
+        const redirectToTarget = () => {
+            console.log(`Setting location to ${state.target}`)
+
+            window.location.href = state.target
+        }
+
+        if (state.target !== "") {
+            redirectToTarget()
+        }
+    }, [state.target])
 
     return (
-        <p>Redirecting to {state.target}</p>
+        <p>Redirecting to {state.target === "" ? <Loader/> : state.target}</p>
     )
 }
