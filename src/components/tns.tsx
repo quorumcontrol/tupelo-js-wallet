@@ -66,7 +66,7 @@ export function TupeloNamingService(props: RouteProps) {
 
     return (
         <div>
-            <AddEntry userTree={globalState.userTree} entryAdded={() => setState({ ...state, modifiedAt: Date.now() })} />
+            <SetEntry userTree={globalState.userTree} entryChanged={() => setState({ ...state, modifiedAt: Date.now() })} />
             <Table>
                 <thead>
                     <tr>
@@ -119,7 +119,7 @@ const entryNameToPath = (entryName: string) => {
     return entryName.replace('.', '/')
 }
 
-export const AddEntry = ({ userTree, entryAdded }: { userTree: ChainTree, entryAdded: Function }) => {
+export const SetEntry = ({ userTree, entryChanged }: { userTree: ChainTree, entryChanged: Function }) => {
     const [state, setState] = useState({
         loading: false,
         entryName: '',
@@ -138,7 +138,7 @@ export const AddEntry = ({ userTree, entryAdded }: { userTree: ChainTree, entryA
                 setDataTransaction(tnsPath + "/" + entryPath, state.pointer)
             ])
             setState({ ...state, loading: false, entryName: '', pointer: '' })
-            entryAdded()
+            entryChanged()
         }
         doAsync()
     }
@@ -158,7 +158,7 @@ export const AddEntry = ({ userTree, entryAdded }: { userTree: ChainTree, entryA
                 </Form.Control>
             </Form.Field>
             <Form.Field kind="group">
-                <Button color="primary" onClick={handleSubmit}>Add</Button>
+                <Button color="primary" onClick={handleSubmit}>Set</Button>
             </Form.Field>
         </Box>
     )
