@@ -8,8 +8,8 @@ import { ObjectWallet } from '../components/objectwallet';
 import { TupeloNamingService } from '../components/tns';
 
 enum tabs {
-    objects,
     tokens,
+    objects,
     creator,
     tns,
 }
@@ -18,7 +18,7 @@ type tabStrings = keyof typeof tabs;
 export function Wallet(props: RouteProps) {
 
     const [state, setState] = useState({
-        currentTab: tabs.objects,
+        currentTab: tabs.tokens,
     })
     const [globalState] = useContext(StoreContext)
 
