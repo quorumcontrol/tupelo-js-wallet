@@ -20,7 +20,7 @@ const Routing = () => {
         </Columns>
       </Section>
       :
-      window.location.hostname === "clownfahrt.com" ?
+      window.location.hostname === process.env.REACT_APP_WALLET_DOMAIN ?
         <div>
           <UserMessageList />
           <Router>
