@@ -45,7 +45,7 @@ export function TNSRouter() {
                 // Assumes first two components are username (i.e. TLD and component just to the left of that)
                 // Everything else should be TNS pointers inside that user's chaintree.
                 username = hostnameComponents.slice(0, 2).reverse().join('.')
-                chaintreeDataPath = hostnameComponents.slice(3).reverse().join('/')
+                chaintreeDataPath = hostnameComponents.slice(2).reverse().join('/')
             }
 
             let userTree: ChainTree
@@ -73,6 +73,8 @@ export function TNSRouter() {
             if (dataPath === "") {
                 dataPath = '@'
             }
+
+            console.log(`looking up TNS record at ${dataPath}`)
 
             const pointer = await tree.resolveData(`${tnsPath}/${dataPath}`)
 
