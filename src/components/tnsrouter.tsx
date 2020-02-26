@@ -76,7 +76,7 @@ export function TNSRouter() {
 
             const pointer = await tree.resolveData(`${tnsPath}/${dataPath}`)
 
-            const target = `https://ipfs.io${pointer.value}`
+            const target = `${process.env.REACT_APP_IPFS_GATEWAY}${pointer.value}`
 
             setState((s) => {
                 console.log(`setting state.target to ${target}`)
