@@ -5,7 +5,7 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 
 const loc = window.location;
-if (loc.protocol !== 'https:') {
+if (loc.hostname !== "localhost" && loc.protocol !== 'https:') {
     window.location.href = loc.href.replace('http://', 'https://');
 }
 
