@@ -58,6 +58,9 @@ let usernameTimeout: number | undefined;
 const checkUsername = (state: ILoginState, dispatch: Function) => {
 
     const later = async () => {
+
+        // TODO: Should most of this be replaced by ../util/usernames:getUserTree ?
+
         const c = await getAppCommunity()
 
         const username = state.username

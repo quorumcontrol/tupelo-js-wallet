@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Form, Box,Button, Loader } from 'react-bulma-components';
-import { Tupelo,ChainTree, EcdsaKey, setDataTransaction, setOwnershipTransaction } from 'tupelo-wasm-sdk';
+import { Form, Box, Button, Loader } from 'react-bulma-components';
+import { Tupelo, ChainTree, EcdsaKey, setDataTransaction, setOwnershipTransaction } from 'tupelo-wasm-sdk';
 import { getAppCommunity, txsWithCommunityWait } from '../util/appcommunity';
 
 export interface INFTProperties {

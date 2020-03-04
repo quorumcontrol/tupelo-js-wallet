@@ -10,9 +10,7 @@ import { ReceiveTokenDialog } from './receivetoken';
 
 const tokenPath = "/tree/_tupelo/tokens";
 
-
 export function TokenWallet(props: RouteProps) {
-
     const [state, setState] = useState({
         loading: true,
         tokens: {},
@@ -117,7 +115,6 @@ export function TokenWallet(props: RouteProps) {
         </div>
     )
 }
-
 
 export const TokenRow = ({ tree, tokenName, modifiedAt }: { modifiedAt: number, tree: ChainTree, tokenName: string }) => {
     const [state, setState] = useState({

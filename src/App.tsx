@@ -6,12 +6,11 @@ import { LoginForm } from './pages/login';
 import { StoreProvider, StoreContext } from './state/store';
 import { HashRouter as Router, Switch, Route } from "react-router-dom";
 import { Wallet } from './pages/wallet';
-
+import { TNSRouter } from './components/tnsrouter'
 import { UserMessageList } from './components/messagelist'
 
 const Routing = () => {
   const [globalState] = useContext(StoreContext)
-
 
   return (
     globalState.loading > 0 ?
@@ -21,22 +20,25 @@ const Routing = () => {
         </Columns>
       </Section>
       :
-      <div>
-        <UserMessageList />
-        <Router>
-          <Switch>
-            <Route path="/login">
-              <LoginForm />
-            </Route>
-            <Route path="/wallet">
-              <Wallet />
-            </Route>
-            <Route>
-              <LoginForm />
-            </Route>
-          </Switch>
-        </Router>
-      </div>
+      window.location.hostname === process.env.REACT_APP_WALLET_DOMAIN ?
+        <div>
+          <UserMessageList />
+          <Router>
+            <Switch>
+              <Route path="/login">
+                <LoginForm />
+              </Route>
+              <Route path="/wallet">
+                <Wallet />
+              </Route>
+              <Route>
+                <LoginForm />
+              </Route>
+            </Switch>
+          </Router>
+        </div>
+        :
+        <TNSRouter />
   )
 }
 
