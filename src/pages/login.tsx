@@ -51,7 +51,6 @@ const initialState = {
     loadingText: '',
 }
 
-
 let usernameTimeout: number | undefined;
 
 // debounced username checker

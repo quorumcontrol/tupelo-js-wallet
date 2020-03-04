@@ -16,7 +16,7 @@
     "react-dom": "^16.10.0",
     "react-router-dom": "^5.1.1",
     "react-scripts": "^3.4.0",
-    "tupelo-wasm-sdk": "^0.5.14",
+    "tupelo-wasm-sdk": "next",
     "typescript": "3.6.3"
   },
   "scripts": {

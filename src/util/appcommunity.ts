@@ -51,12 +51,8 @@ export function getAppCommunity(): Promise<Community> {
 
 export async function txsWithCommunityWait(tree:ChainTree, txs:Transaction[]) {
     const c = await getAppCommunity()
-    const res = await c.playTransactions(tree, txs)
-    const sig = res.getSignature()
-    if (sig === undefined) {
-        throw new Error("undefined sig from response")
-    }
-    const respTip = new CID(Buffer.from(sig.getNewTip_asU8()))
+    const proof = await c.playTransactions(tree, txs)
+    const respTip = new CID(Buffer.from(proof.getTip_asU8()))
 
     const treeId = await tree.id()
     if (treeId === null) {
@@ -64,9 +60,8 @@ export async function txsWithCommunityWait(tree:ChainTree, txs:Transaction[]) {
     }
 
     await waitForCommunityTip(treeId, respTip)
-    return res
+    return proof
 }
-
 
 // for some reason can't use CID as a type here easily
 export function waitForCommunityTip(did:string, tip:CID) {
