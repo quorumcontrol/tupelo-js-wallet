@@ -15,7 +15,7 @@
     "react-bulma-components": "^3.0.1-7",
     "react-dom": "^16.10.0",
     "react-router-dom": "^5.1.1",
-    "react-scripts": "^3.4.0",
+    "react-scripts": "^5.0.1",
     "tupelo-wasm-sdk": "^0.5.14",
     "typescript": "3.6.3"
   },
